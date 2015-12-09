@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:key="pref_record"
+        android:title="@string/pref_record_title" >
+
+        <SwitchPreference
+            android:key="pref_file_save"
+            android:title="@string/pref_file_save"
+            android:defaultValue="true" />
+
+        <PreferenceScreen
+            android:key="pref_network"
+            android:title="@string/pref_network"
+            android:persistent="false">
+
+            <CheckBoxPreference
+                android:key="pref_network_save"
+                android:title="@string/pref_network_save"
+                android:defaultValue="false" />
+
+            <EditTextPreference
+                android:key="pref_network_host"
+                android:title="@string/pref_network_host" />
+
+            <ListPreference
+                android:key="@string/pref_network_protocol"
+                android:title="@string/pref_network_protocol"
+                android:entries="@array/pref_network_protocol_values"
+                android:entryValues="@array/pref_network_protocol_values" />
+
+            <EditTextPreference
+                android:key="pref_network_port"
+                android:title="@string/pref_network_port"
+                android:digits="0123456789"
+                android:numeric="integer" />
+
+        </PreferenceScreen>
+
+        <EditTextPreference
+            android:key="pref_sampling_period"
+            android:title="@string/pref_sampling_period"
+            android:digits="0123456789"
+            android:numeric="integer" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="pref_sensors"
+        android:title="@string/pref_sensors_title" >
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

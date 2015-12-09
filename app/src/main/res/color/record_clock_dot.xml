@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
+
+    <item android:color="@color/colorAccent" app:recording_active="true" />
+    <item android:color="@color/colorDivider" app:recording_paused="true" />
+    <item android:color="@android:color/transparent" />
+
+</selector>

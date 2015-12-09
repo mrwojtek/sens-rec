@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Sensors Record</string>
+    <string name="settings_name">Recording Settings</string>
+    <string name="action_settings">Settings</string>
+
+    <!-- Measure -->
+    <string name="measure_missing">Missing</string>
+    <string name="measure_quiet">Quiet</string>
+    <string name="measure_ambiguous">Ambiguous</string>
+    <string name="measure_frequency" formatted="false">%.2g Hz</string>
+
+    <!-- Recording -->
+    <string name="record_clock">%1$02d:%2$02d:%3$02d</string>
+    <string name="record_file_caption">File</string>
+    <string name="record_network_caption">Network</string>
+
+    <!-- Preferences -->
+    <string name="pref_record_title">Recording</string>
+    <string name="pref_file_save">Save to file</string>
+    <string name="pref_network">Network</string>
+    <string name="pref_network_save">Save over network</string>
+    <string name="pref_network_host">Host</string>
+    <string name="pref_network_protocol">Protocol</string>
+    <array name="pref_network_protocol_values">
+        <item>TCP</item>
+        <item>UDP</item>
+    </array>
+    <string name="pref_network_port">Port</string>
+    <string name="pref_sampling_period">Sampling period</string>
+    <string name="pref_sensors_title">Sensors</string>
+
+</resources>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="material_blue_grey_500">#607D8B</color>
+    <color name="material_blue_grey_700">#455A64</color>
+    <color name="material_red_A200">#FF5252</color>
+
+    <color name="colorPrimary">@color/material_blue_grey_500</color>
+    <color name="colorPrimaryDark">@color/material_blue_grey_700</color>
+    <color name="colorAccent">@color/material_red_A200</color>
+
+    <color name="colorTextPrimary">#DE000000</color>
+    <color name="colorTextSecondary">#8A000000</color>
+    <color name="colorTextHint">#61000000</color>
+    <color name="colorDivider">#1E000000</color>
+
+    <color name="colorTextPrimaryInverse">#FFFFFFFF</color>
+    <color name="colorTextSecondaryInverse">#B2FFFFFF</color>
+    <color name="colorTextHintInverse">#4CFFFFFF</color>
+
+</resources>
