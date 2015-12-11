@@ -36,6 +36,8 @@ import pl.mrwojtek.sensrec.SensorsRecorder;
  */
 public class SensorsRecordActivity extends AppCompatActivity {
 
+    private static final String TAG = "SensRec";
+
     protected FloatingActionButton stopFloat;
     protected FloatingActionButton recordFloat;
     protected ColorStateList recordFloatColor;
@@ -53,16 +55,16 @@ public class SensorsRecordActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new RecordFragment()).commit();
+                    .add(R.id.container, new RecordingFragment()).commit();
         }
 
-        recorder = new SensorsRecorder(this);
+        recorder = RecordingService.getRecorder(this);
 
         stopFloat = (FloatingActionButton) findViewById(R.id.stop_float);
         stopFloat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                recorder.stop();
+                stopRecording();
             }
         });
 
@@ -75,12 +77,12 @@ public class SensorsRecordActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if (recorder.isActive()) {
                     if (recorder.isPaused()) {
-                        recorder.start();
+                        startRecording();
                     } else {
-                        recorder.pause();
+                        pauseRecording();
                     }
                 } else {
-                    recorder.start();
+                    startRecording();
                 }
             }
         });
@@ -123,6 +125,19 @@ public class SensorsRecordActivity extends AppCompatActivity {
                 recordFloatBackgroundColor.getDefaultColor())));
         recordFloat.setColorFilter(recordFloatColor.getColorForState(state,
                 recordFloatColor.getDefaultColor()));
+    }
+
+    protected void startRecording() {
+        recorder.start();
+        RecordingService.startService(this);
+    }
+
+    protected void stopRecording() {
+        recorder.stop();
+    }
+
+    protected void pauseRecording() {
+        recorder.pause();
     }
 
 }

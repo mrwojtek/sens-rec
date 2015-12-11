@@ -43,14 +43,14 @@ import pl.mrwojtek.sensrec.app.util.TintableImageView;
 /**
  * Preview of the currently running recording.
  */
-public class RecordFragment extends Fragment implements SensorsRecorder.OnRecordingListener {
+public class RecordingFragment extends Fragment implements SensorsRecorder.OnRecordingListener {
 
     private static final String TAG = "SensRec";
 
-    private static int MINIMUM_DELAY = 300;
-    private static int SECOND = 1000;
-    private static int MINUTE = 60;
-    private static int HOUR = 60;
+    private static final int MINIMUM_DELAY = 300;
+    private static final int SECOND = 1000;
+    private static final int MINUTE = 60;
+    private static final int HOUR = 60;
 
     protected SensorsRecordActivity activity;
     protected Handler uiHandler;
@@ -109,12 +109,12 @@ public class RecordFragment extends Fragment implements SensorsRecorder.OnRecord
     @Override
     public void onStart() {
         super.onStart();
-        activity.getRecorder().setOnRecordingListener(this);
+        activity.getRecorder().addOnRecordingListener(this, true);
     }
 
     @Override
     public void onStop() {
-        activity.getRecorder().setOnRecordingListener(null);
+        activity.getRecorder().removeOnRecordingListener(this);
         uiHandler.removeCallbacks(recordingRunnable);
         super.onStop();
     }

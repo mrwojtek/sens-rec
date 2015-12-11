@@ -50,7 +50,7 @@ public class SensorsRecorder {
     protected SensorManager sensorManager;
     protected LocationManager locationManager;
 
-    protected OnRecordingListener onRecordingListener;
+    protected List<OnRecordingListener> onRecordingListeners = new ArrayList<>();
     protected List<Recorder> recorders;
 
     protected long lastDuration;
@@ -67,7 +67,7 @@ public class SensorsRecorder {
     }
 
     public SensorsRecorder(Context context) {
-        this.context = context;
+        this.context = context.getApplicationContext();
         uiHandler = new Handler(context.getMainLooper());
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
@@ -107,18 +107,25 @@ public class SensorsRecorder {
         recorders.add(new BatteryRecorder(this));
     }
 
-    public void setOnRecordingListener(OnRecordingListener onRecordingListener) {
-        this.onRecordingListener = onRecordingListener;
+    public void addOnRecordingListener(OnRecordingListener onRecordingListener, boolean notify) {
+        onRecordingListeners.add(onRecordingListener);
 
-        if (active) {
-            if (paused) {
-                notifyPaused();
+        if (notify) {
+            if (active) {
+                if (paused) {
+                    notifyPaused();
+                } else {
+                    notifyStarted();
+                }
             } else {
-                notifyStarted();
+                notifyStopped();
             }
-        } else {
-            notifyStopped();
         }
+    }
+
+    public boolean removeOnRecordingListener(OnRecordingListener onRecordingListener) {
+        onRecordingListeners.remove(onRecordingListener);
+        return onRecordingListeners.isEmpty();
     }
 
     protected SensorManager getSensorManager() {
@@ -147,6 +154,14 @@ public class SensorsRecorder {
         } else {
             return lastDuration;
         }
+    }
+
+    public boolean isSaving() {
+        return false;
+    }
+
+    public boolean isStreaming() {
+        return false;
     }
 
     public boolean isActive() {
@@ -313,20 +328,20 @@ public class SensorsRecorder {
     }
 
     protected void notifyStarted() {
-        if (onRecordingListener != null) {
-            onRecordingListener.onStarted();
+        for (OnRecordingListener listener : onRecordingListeners) {
+            listener.onStarted();
         }
     }
 
     protected void notifyStopped() {
-        if (onRecordingListener != null) {
-            onRecordingListener.onStopped();
+        for (OnRecordingListener listener : onRecordingListeners) {
+            listener.onStopped();
         }
     }
 
     protected void notifyPaused() {
-        if (onRecordingListener != null) {
-            onRecordingListener.onPaused();
+        for (OnRecordingListener listener : onRecordingListeners) {
+            listener.onPaused();
         }
     }
 

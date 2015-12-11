@@ -13,8 +13,18 @@
 
     <!-- Recording -->
     <string name="record_clock">%1$02d:%2$02d:%3$02d</string>
+    <string name="record_notification_clock">Recording %1$02d:%2$02d:%3$02d</string>
     <string name="record_file_caption">File</string>
     <string name="record_network_caption">Network</string>
+    <string name="record_restart">Re-start</string>
+    <string name="record_stop">Stop</string>
+    <string name="record_pause">Pause</string>
+
+    <!-- Notification content texts -->
+    <string name="output_saving_streaming">Saving and streaming</string>
+    <string name="output_saving">Saving</string>
+    <string name="output_streaming">Streaming</string>
+    <string name="output_disabled"></string>
 
     <!-- Preferences -->
     <string name="pref_record_title">Recording</string>
