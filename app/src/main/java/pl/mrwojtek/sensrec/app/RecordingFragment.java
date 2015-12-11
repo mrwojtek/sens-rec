@@ -47,6 +47,7 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
 
     private static final String TAG = "SensRec";
 
+    private static final int DOT_TICK = 500;
     private static final int MINIMUM_DELAY = 300;
     private static final int SECOND = 1000;
     private static final int MINUTE = 60;
@@ -90,9 +91,9 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
             @Override
             public void run() {
                 long duration = activity.getRecorder().getDuration(SystemClock.elapsedRealtime());
-                long delay = (SECOND - (duration % SECOND)) % SECOND;
+                long delay = (DOT_TICK - (duration % DOT_TICK)) % DOT_TICK;
                 uiHandler.postDelayed(recordingRunnable,
-                        (delay < MINIMUM_DELAY ? SECOND : 0) + delay + 1);
+                        (delay < MINIMUM_DELAY ? DOT_TICK : 0) + delay + 1);
                 boolean active = updateRecordingClock(duration);
                 for (RecordingView recordingView : recordings) {
                     active = recordingView.updateValueText() || active;
