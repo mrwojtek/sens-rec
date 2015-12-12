@@ -20,11 +20,13 @@
 package pl.mrwojtek.sensrec;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.location.LocationManager;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +36,21 @@ import java.util.Map;
 /**
  * Provides functionality to manage recordings lifecycle.
  */
-public class SensorsRecorder {
+public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChangeListener {
+
+    public static final String PREF_FILE_SAVE = "pref_file_save";
+    public static final String PREF_NETWORK_SAVE = "pref_network_save";
+    public static final String PREF_NETWORK_HOST = "pref_network_host";
+    public static final String PREF_NETWORK_PROTOCOL = "pref_network_protocol";
+    public static final String PREF_NETWORK_PORT = "pref_network_port";
+    public static final String PREF_SAMPLING_PERIOD = "pref_sampling_period";
+
+    public static final int DEFAULT_PORT = 44335;
+    public static final int DEFAULT_PROTOCOL = 0;
+    public static final String DEFAULT_HOST = "";
+    public static final boolean DEFAULT_NETWORK_SAVE = false;
+    public static final boolean DEFAULT_FILE_SAVE = true;
+    public static final long DEFAULT_SAMPLING_PERIOD = SensorManager.SENSOR_DELAY_NORMAL;
 
     public static final short TYPE_START = -1;
     public static final short TYPE_END = -2;
@@ -49,6 +65,7 @@ public class SensorsRecorder {
     protected Handler uiHandler;
     protected SensorManager sensorManager;
     protected LocationManager locationManager;
+    protected SharedPreferences prefs;
 
     protected List<OnRecordingListener> onRecordingListeners = new ArrayList<>();
     protected List<Recorder> recorders;
@@ -72,6 +89,8 @@ public class SensorsRecorder {
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         initialize();
+        prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        prefs.registerOnSharedPreferenceChangeListener(this);
     }
 
     public void initialize() {
@@ -105,6 +124,13 @@ public class SensorsRecorder {
         }
 
         recorders.add(new BatteryRecorder(this));
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (PREF_FILE_SAVE.equals(key)) {
+            notifyOutput();
+        }
     }
 
     public void addOnRecordingListener(OnRecordingListener onRecordingListener, boolean notify) {
@@ -157,7 +183,7 @@ public class SensorsRecorder {
     }
 
     public boolean isSaving() {
-        return false;
+        return prefs.getBoolean(PREF_FILE_SAVE, true);
     }
 
     public boolean isStreaming() {
@@ -345,10 +371,19 @@ public class SensorsRecorder {
         }
     }
 
+    protected void notifyOutput() {
+        boolean saving = isSaving();
+        boolean streaming = isStreaming();
+        for (OnRecordingListener listener : onRecordingListeners) {
+            listener.onOutput(saving, streaming);
+        }
+    }
+
     public interface OnRecordingListener {
         void onStarted();
         void onStopped();
         void onPaused();
+        void onOutput(boolean saving, boolean streaming);
     }
 
 }

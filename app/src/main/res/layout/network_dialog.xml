@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <RelativeLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="24dp"
+        android:paddingTop="18dp"
+        android:paddingBottom="18dp"
+        android:paddingRight="24dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true" >
+
+        <Switch
+            android:id="@+id/network_switch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:paddingLeft="8dp"
+            android:text="@string/network_save"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/host_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/network_switch" >
+
+            <EditText
+                android:id="@+id/host_edit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:hint="@string/network_host" />
+
+        </android.support.design.widget.TextInputLayout>
+
+        <LinearLayout
+            android:id="@+id/protocol_layout"
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/host_layout" >
+
+            <TextView
+                style="@style/TextAppearance.AppCompat.Caption"
+                android:id="@+id/protocol_caption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="3dp"
+                android:includeFontPadding="false"
+                android:paddingLeft="8dp"
+                android:text="@string/network_protocol" />
+
+            <android.support.v7.widget.AppCompatSpinner
+                android:id="@+id/protocol_spinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:spinnerMode="dropdown"
+                android:entries="@array/network_protocol_values" />
+
+        </LinearLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/host_layout"
+            android:layout_toRightOf="@id/protocol_layout" >
+
+            <EditText
+                android:id="@+id/port_edit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:inputType="number"
+                android:gravity="right"
+                android:hint="@string/network_port" />
+
+        </android.support.design.widget.TextInputLayout>
+
+    </RelativeLayout>
+
+</ScrollView>

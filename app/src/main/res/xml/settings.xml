@@ -10,39 +10,13 @@
             android:title="@string/pref_file_save"
             android:defaultValue="true" />
 
-        <PreferenceScreen
+        <Preference
             android:key="pref_network"
-            android:title="@string/pref_network"
-            android:persistent="false">
+            android:title="@string/pref_network" />
 
-            <CheckBoxPreference
-                android:key="pref_network_save"
-                android:title="@string/pref_network_save"
-                android:defaultValue="false" />
-
-            <EditTextPreference
-                android:key="pref_network_host"
-                android:title="@string/pref_network_host" />
-
-            <ListPreference
-                android:key="@string/pref_network_protocol"
-                android:title="@string/pref_network_protocol"
-                android:entries="@array/pref_network_protocol_values"
-                android:entryValues="@array/pref_network_protocol_values" />
-
-            <EditTextPreference
-                android:key="pref_network_port"
-                android:title="@string/pref_network_port"
-                android:digits="0123456789"
-                android:numeric="integer" />
-
-        </PreferenceScreen>
-
-        <EditTextPreference
+        <Preference
             android:key="pref_sampling_period"
-            android:title="@string/pref_sampling_period"
-            android:digits="0123456789"
-            android:numeric="integer" />
+            android:title="@string/pref_sampling_period" />
 
     </PreferenceCategory>
 

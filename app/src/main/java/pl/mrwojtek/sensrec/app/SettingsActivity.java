@@ -19,11 +19,15 @@
 
 package pl.mrwojtek.sensrec.app;
 
+import android.content.SharedPreferences;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
+import android.preference.PreferenceManager;
 import android.preference.SwitchPreference;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
@@ -33,6 +37,8 @@ import java.util.List;
 import pl.mrwojtek.sensrec.PhysicalRecorderComparator;
 import pl.mrwojtek.sensrec.Recorder;
 import pl.mrwojtek.sensrec.SensorsRecorder;
+import pl.mrwojtek.sensrec.app.util.NetworkPreferenceDialog;
+import pl.mrwojtek.sensrec.app.util.SamplingPeriodPreferenceDialog;
 
 /**
  * Activity for configuring recording.
@@ -40,6 +46,7 @@ import pl.mrwojtek.sensrec.SensorsRecorder;
 public class SettingsActivity extends AppCompatActivity {
 
     private static final String KEY_SENSORS = "pref_sensors";
+    private static final String KEY_NETWORK = "pref_network";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,15 +57,53 @@ public class SettingsActivity extends AppCompatActivity {
                 .commit();
     }
 
-    public static class SettingsFragment extends PreferenceFragment {
+    public static class SettingsFragment extends PreferenceFragment implements
+            SharedPreferences.OnSharedPreferenceChangeListener {
+
+        private SharedPreferences preferences;
+        private Preference samplingPref;
+        private Preference networkPref;
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.settings);
 
-            PreferenceCategory sensors =
-                    (PreferenceCategory) getPreferenceScreen().findPreference(KEY_SENSORS);
+            preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            preferences.registerOnSharedPreferenceChangeListener(this);
+
+            networkPref = getPreferenceScreen().findPreference(KEY_NETWORK);
+            networkPref.setSummary(getNetworkSummary());
+            networkPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    FragmentTransaction fm = ((AppCompatActivity) getActivity())
+                            .getSupportFragmentManager()
+                            .beginTransaction();
+                    fm.add(new NetworkPreferenceDialog(), NetworkPreferenceDialog.DIALOG_TAG);
+                    fm.commit();
+                    return true;
+                }
+            });
+
+            samplingPref = getPreferenceScreen()
+                    .findPreference(SensorsRecorder.PREF_SAMPLING_PERIOD);
+            samplingPref.setSummary(getSamplingSummary());
+            samplingPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    FragmentTransaction fm = ((AppCompatActivity) getActivity())
+                            .getSupportFragmentManager()
+                            .beginTransaction();
+                    fm.add(new SamplingPeriodPreferenceDialog(),
+                            SamplingPeriodPreferenceDialog.DIALOG_TAG);
+                    fm.commit();
+                    return true;
+                }
+            });
+
+            PreferenceCategory sensors = (PreferenceCategory) getPreferenceScreen()
+                    .findPreference(KEY_SENSORS);
 
             SensorsRecorder recorder = new SensorsRecorder(getActivity());
             List<Recorder> all = recorder.getAll();
@@ -79,9 +124,58 @@ public class SettingsActivity extends AppCompatActivity {
                         return true;
                     }
                 });
+                pref.setKey("pref_sensor");
                 pref.setTitle(r.getShortName());
                 pref.setSummary(r.getDescription());
                 sensors.addPreference(pref);
+            }
+        }
+
+        @Override
+        public void onDestroy() {
+            preferences.unregisterOnSharedPreferenceChangeListener(this);
+            super.onDestroy();
+        }
+
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            Log.i("SensRec", "Changed " + key);
+            if (SensorsRecorder.PREF_SAMPLING_PERIOD.equals(key)) {
+                samplingPref.setSummary(getSamplingSummary());
+            } else if (SensorsRecorder.PREF_NETWORK_SAVE.equals(key) ||
+                    SensorsRecorder.PREF_NETWORK_HOST.equals(key) ||
+                    SensorsRecorder.PREF_NETWORK_PORT.equals(key) ||
+                    SensorsRecorder.PREF_NETWORK_PROTOCOL.equals(key)) {
+                networkPref.setSummary(getNetworkSummary());
+            }
+        }
+
+        private String getSamplingSummary() {
+            long delay = preferences.getLong(SensorsRecorder.PREF_SAMPLING_PERIOD,
+                    SensorsRecorder.DEFAULT_SAMPLING_PERIOD);
+            int position = SamplingPeriodPreferenceDialog.getSamplingPosition(delay);
+            if (position == SamplingPeriodPreferenceDialog.POSITION_CUSTOM) {
+                return getString(R.string.pref_sampling_period_value, delay);
+            } else {
+                String[] constants = getResources()
+                        .getStringArray(R.array.sampling_period_default_values);
+                return getString(R.string.pref_sampling_period_constant, constants[position]);
+            }
+        }
+
+        private String getNetworkSummary() {
+            if (preferences.getBoolean(SensorsRecorder.PREF_NETWORK_SAVE,
+                    SensorsRecorder.DEFAULT_NETWORK_SAVE)) {
+                String[] protocol = getResources().getStringArray(R.array.network_protocol_values);
+                return getString(R.string.pref_network_value,
+                        preferences.getString(SensorsRecorder.PREF_NETWORK_HOST,
+                                SensorsRecorder.DEFAULT_HOST),
+                        protocol[preferences.getInt(SensorsRecorder.PREF_NETWORK_PROTOCOL,
+                                SensorsRecorder.DEFAULT_PROTOCOL)],
+                        preferences.getInt(SensorsRecorder.PREF_NETWORK_PORT,
+                                SensorsRecorder.DEFAULT_PORT));
+            } else {
+                return getString(R.string.pref_network_disabled);
             }
         }
 

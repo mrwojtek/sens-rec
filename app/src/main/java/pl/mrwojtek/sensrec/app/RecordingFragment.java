@@ -140,6 +140,11 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
         updateRecordingClock();
     }
 
+    @Override
+    public void onOutput(boolean saving, boolean streaming) {
+        // Ignore
+    }
+
     protected void updateRecordingClock() {
         updateRecordingClock(activity.getRecorder().getDuration(SystemClock.elapsedRealtime()));
     }
@@ -163,7 +168,6 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
                 }
                 recordingClockRed = !recordingClockRed;
             }
-
         }
         if (state == null) {
             state = new int[]{};

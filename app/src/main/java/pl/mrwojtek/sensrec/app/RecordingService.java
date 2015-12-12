@@ -153,6 +153,14 @@ public class RecordingService extends Service implements SensorsRecorder.OnRecor
         updateNotification();
     }
 
+    @Override
+    public void onOutput(boolean saving, boolean streaming) {
+        if (notificationBuilder != null) {
+            notificationBuilder.setContentText(getNotificationText());
+            updateNotification();
+        }
+    }
+
     public void takeWakeLock() {
         if (wakeLock == null) {
             Log.i(TAG, "takeWakeLock " + lastStartId);

@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Common texts -->
     <string name="app_name">Sensors Record</string>
     <string name="settings_name">Recording Settings</string>
     <string name="action_settings">Settings</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_ok">OK</string>
 
     <!-- Measure -->
     <string name="measure_missing">Missing</string>
@@ -30,15 +33,33 @@
     <string name="pref_record_title">Recording</string>
     <string name="pref_file_save">Save to file</string>
     <string name="pref_network">Network</string>
-    <string name="pref_network_save">Save over network</string>
-    <string name="pref_network_host">Host</string>
-    <string name="pref_network_protocol">Protocol</string>
-    <array name="pref_network_protocol_values">
+    <string name="pref_network_value">%1$s on %2$s port %3$d</string>
+    <string name="pref_network_disabled">Disabled</string>
+    <string name="pref_sampling_period">Sampling period</string>
+    <string name="pref_sampling_period_value">Set to %1$dms</string>
+    <string name="pref_sampling_period_constant">Set to constant %1$s</string>
+    <string name="pref_sensors_title">Sensors</string>
+
+    <!-- Preference dialgos -->
+    <string name="sampling_period_title">Set sampling period</string>
+    <string name="sampling_period_constants_text">Constant</string>
+    <string name="sampling_period_milliseconds_text">Milliseconds</string>
+    <array name="sampling_period_default_values">
+        <item>Normal</item>
+        <item>UI</item>
+        <item>Game</item>
+        <item>Fastest</item>
+        <item>Custom</item>
+    </array>
+
+    <string name="network_save">Save over network</string>
+    <string name="network_title">Set network</string>
+    <string name="network_host">Host</string>
+    <string name="network_protocol">Protocol</string>
+    <string name="network_port">Port</string>
+    <array name="network_protocol_values">
         <item>TCP</item>
         <item>UDP</item>
     </array>
-    <string name="pref_network_port">Port</string>
-    <string name="pref_sampling_period">Sampling period</string>
-    <string name="pref_sensors_title">Sensors</string>
 
 </resources>
