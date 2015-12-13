@@ -40,9 +40,9 @@ import pl.mrwojtek.sensrec.SensorsRecorder;
  */
 public class RecordingService extends Service implements SensorsRecorder.OnRecordingListener {
 
-    private static final String ACTION_PAUSE_RECORDING = "pl.mrwojtek.sensrec.PauseRecording";
-    private static final String ACTION_START_RECORDING = "pl.mrwojtek.sensrec.StartRecording";
-    private static final String ACTION_STOP_RECORDING = "pl.mrwojtek.sensrec.StopRecording";
+    public static final String ACTION_PAUSE_RECORDING = "pl.mrwojtek.sensrec.PauseRecording";
+    public static final String ACTION_START_RECORDING = "pl.mrwojtek.sensrec.StartRecording";
+    public static final String ACTION_STOP_RECORDING = "pl.mrwojtek.sensrec.StopRecording";
 
     private static final String TAG = "SensRec";
     private static final int NOTIFICATION_ID = 1;
@@ -72,9 +72,9 @@ public class RecordingService extends Service implements SensorsRecorder.OnRecor
         return recorder;
     }
 
-    public static void startService(Context context) {
+    public static void startService(Context context, String action) {
         Intent intent = new Intent(context, RecordingService.class);
-        intent.setAction(ACTION_START_RECORDING);
+        intent.setAction(action);
         context.startService(intent);
     }
 
@@ -96,10 +96,12 @@ public class RecordingService extends Service implements SensorsRecorder.OnRecor
             } else if (ACTION_STOP_RECORDING.equals(intent.getAction())) {
                 Log.i(TAG, "onStopCommand " + lastStartId + " STOP");
                 recorder.stop();
+                onStopped();
                 return START_REDELIVER_INTENT;
             } else if (ACTION_PAUSE_RECORDING.equals(intent.getAction())) {
                 Log.i(TAG, "onPauseCommand " + lastStartId + " PAUSE");
                 recorder.pause();
+                onPaused();
                 return START_REDELIVER_INTENT;
             }
         }

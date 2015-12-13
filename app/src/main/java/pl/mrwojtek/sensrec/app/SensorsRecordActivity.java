@@ -129,11 +129,12 @@ public class SensorsRecordActivity extends AppCompatActivity {
 
     protected void startRecording() {
         recorder.start();
-        RecordingService.startService(this);
+        RecordingService.startService(this, RecordingService.ACTION_START_RECORDING);
     }
 
     protected void stopRecording() {
         recorder.stop();
+        RecordingService.startService(this, RecordingService.ACTION_STOP_RECORDING);
     }
 
     protected void pauseRecording() {
