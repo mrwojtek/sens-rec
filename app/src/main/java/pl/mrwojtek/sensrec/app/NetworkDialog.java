@@ -17,7 +17,7 @@
  *     Wojciech Mruczkiewicz
  */
 
-package pl.mrwojtek.sensrec.app.util;
+package pl.mrwojtek.sensrec.app;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -36,15 +36,15 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import pl.mrwojtek.sensrec.SensorsRecorder;
-import pl.mrwojtek.sensrec.app.R;
+import pl.mrwojtek.sensrec.app.util.MaterialUtils;
 
 /**
  * Dialog for setting network preferences.
  */
-public class NetworkPreferenceDialog extends DialogFragment implements
+public class NetworkDialog extends DialogFragment implements
         DialogInterface.OnClickListener {
 
-    public static final String DIALOG_TAG = "NetworkPreferenceDialog";
+    public static final String DIALOG_TAG = "NetworkDialog";
     public static final String MAXIMUM_PORT = "65535";
 
     private Switch networkSwitch;

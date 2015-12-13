@@ -32,7 +32,7 @@
     <!-- Preferences -->
     <string name="pref_record_title">Recording</string>
     <string name="pref_file_save">Save to file</string>
-    <string name="pref_network">Network</string>
+    <string name="pref_network">Save over network</string>
     <string name="pref_network_value">%1$s on %2$s port %3$d</string>
     <string name="pref_network_disabled">Disabled</string>
     <string name="pref_sampling_period">Sampling period</string>

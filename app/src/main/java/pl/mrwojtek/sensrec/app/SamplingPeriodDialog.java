@@ -17,7 +17,7 @@
  *     Wojciech Mruczkiewicz
  */
 
-package pl.mrwojtek.sensrec.app.util;
+package pl.mrwojtek.sensrec.app;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -43,15 +43,15 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import pl.mrwojtek.sensrec.SensorsRecorder;
-import pl.mrwojtek.sensrec.app.R;
+import pl.mrwojtek.sensrec.app.util.MaterialUtils;
 
 /**
  * Allows to configure sampling period for sensors.
  */
-public class SamplingPeriodPreferenceDialog extends DialogFragment implements
+public class SamplingPeriodDialog extends DialogFragment implements
         DialogInterface.OnClickListener, DialogInterface.OnShowListener {
 
-    public static final String DIALOG_TAG = "SamplingPeriodPreferenceDialog";
+    public static final String DIALOG_TAG = "SamplingPeriodDialog";
     public static final String TAG = "SensRec";
 
     public static final int POSITION_NORMAL = 0;

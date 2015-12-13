@@ -14,14 +14,14 @@
             android:key="pref_network"
             android:title="@string/pref_network" />
 
-        <Preference
-            android:key="pref_sampling_period"
-            android:title="@string/pref_sampling_period" />
-
         <SwitchPreference
             android:key="pref_save_binary"
             android:title="@string/pref_save_binary"
             android:defaultValue="true" />
+
+        <Preference
+            android:key="pref_sampling_period"
+            android:title="@string/pref_sampling_period" />
 
     </PreferenceCategory>
 

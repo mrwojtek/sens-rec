@@ -20,7 +20,6 @@
 package pl.mrwojtek.sensrec.app;
 
 import android.content.SharedPreferences;
-import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
@@ -37,8 +36,6 @@ import java.util.List;
 import pl.mrwojtek.sensrec.PhysicalRecorderComparator;
 import pl.mrwojtek.sensrec.Recorder;
 import pl.mrwojtek.sensrec.SensorsRecorder;
-import pl.mrwojtek.sensrec.app.util.NetworkPreferenceDialog;
-import pl.mrwojtek.sensrec.app.util.SamplingPeriodPreferenceDialog;
 
 /**
  * Activity for configuring recording.
@@ -77,11 +74,10 @@ public class SettingsActivity extends AppCompatActivity {
             networkPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
-                    FragmentTransaction fm = ((AppCompatActivity) getActivity())
-                            .getSupportFragmentManager()
-                            .beginTransaction();
-                    fm.add(new NetworkPreferenceDialog(), NetworkPreferenceDialog.DIALOG_TAG);
-                    fm.commit();
+                    FragmentTransaction ft = ((AppCompatActivity) getActivity())
+                            .getSupportFragmentManager().beginTransaction();
+                    ft.add(new NetworkDialog(), NetworkDialog.DIALOG_TAG);
+                    ft.commit();
                     return true;
                 }
             });
@@ -92,12 +88,10 @@ public class SettingsActivity extends AppCompatActivity {
             samplingPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
-                    FragmentTransaction fm = ((AppCompatActivity) getActivity())
-                            .getSupportFragmentManager()
-                            .beginTransaction();
-                    fm.add(new SamplingPeriodPreferenceDialog(),
-                            SamplingPeriodPreferenceDialog.DIALOG_TAG);
-                    fm.commit();
+                    FragmentTransaction ft = ((AppCompatActivity) getActivity())
+                            .getSupportFragmentManager().beginTransaction();
+                    ft.add(new SamplingPeriodDialog(), SamplingPeriodDialog.DIALOG_TAG);
+                    ft.commit();
                     return true;
                 }
             });
@@ -153,8 +147,8 @@ public class SettingsActivity extends AppCompatActivity {
         private String getSamplingSummary() {
             long delay = preferences.getLong(SensorsRecorder.PREF_SAMPLING_PERIOD,
                     SensorsRecorder.DEFAULT_SAMPLING_PERIOD);
-            int position = SamplingPeriodPreferenceDialog.getSamplingPosition(delay);
-            if (position == SamplingPeriodPreferenceDialog.POSITION_CUSTOM) {
+            int position = SamplingPeriodDialog.getSamplingPosition(delay);
+            if (position == SamplingPeriodDialog.POSITION_CUSTOM) {
                 return getString(R.string.pref_sampling_period_value, delay);
             } else {
                 String[] constants = getResources()
