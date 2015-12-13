@@ -32,44 +32,52 @@ import java.util.Map;
  */
 public class PhysicalRecorderComparator implements Comparator<Recorder> {
 
-    protected Map<Short, Integer> order = new HashMap<>();
+    protected Map<Short, Integer> orders = new HashMap<>();
+    protected int defaultDisabledIndex;
 
     public PhysicalRecorderComparator() {
         int index = 0;
-        order.put(SensorsRecorder.TYPE_GPS, index++);
-        order.put(SensorsRecorder.TYPE_GPS_NMEA, index++);
-        order.put(SensorsRecorder.TYPE_BATTERY_VOLTAGE, index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_ACCELEROMETER), index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_GYROSCOPE), index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_GYROSCOPE_UNCALIBRATED), index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_MAGNETIC_FIELD), index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED),
+        orders.put(SensorsRecorder.TYPE_GPS, index++);
+        orders.put(SensorsRecorder.TYPE_GPS_NMEA, index++);
+        orders.put(SensorsRecorder.TYPE_BATTERY_VOLTAGE, index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_ACCELEROMETER), index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_GYROSCOPE), index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_GYROSCOPE_UNCALIBRATED), index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_MAGNETIC_FIELD), index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED),
                 index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_PRESSURE), index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_RELATIVE_HUMIDITY), index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_AMBIENT_TEMPERATURE), index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_TEMPERATURE), index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_LIGHT), index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_HEART_RATE), index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_PROXIMITY), index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_GRAVITY), index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_LINEAR_ACCELERATION), index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_ROTATION_VECTOR), index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_GAME_ROTATION_VECTOR), index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR),
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_PRESSURE), index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_RELATIVE_HUMIDITY), index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_AMBIENT_TEMPERATURE), index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_TEMPERATURE), index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_LIGHT), index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_HEART_RATE), index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_PROXIMITY), index++);
+
+        defaultDisabledIndex = index;
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_GRAVITY), index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_LINEAR_ACCELERATION), index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_ROTATION_VECTOR), index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_GAME_ROTATION_VECTOR), index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR),
                 index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_STEP_COUNTER), index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_STEP_DETECTOR), index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_SIGNIFICANT_MOTION), index++);
-        order.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_ORIENTATION), index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_STEP_COUNTER), index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_STEP_DETECTOR), index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_SIGNIFICANT_MOTION), index++);
+        orders.put(SensorsRecorder.getSensorTypeId(Sensor.TYPE_ORIENTATION), index++);
+    }
+
+    public boolean isDefaultEnabled(Recorder recorder) {
+        Integer order = orders.get(recorder.getTypeId());
+        return order != null && order < defaultDisabledIndex;
     }
 
     @Override
     public int compare(Recorder lhs, Recorder rhs) {
         int c;
 
-        Integer lhsOrder = order.get(lhs.getTypeId());
-        Integer rhsOrder = order.get(rhs.getTypeId());
+        Integer lhsOrder = orders.get(lhs.getTypeId());
+        Integer rhsOrder = orders.get(rhs.getTypeId());
         if (lhsOrder != null && rhsOrder != null) {
             c = !lhsOrder.equals(rhsOrder) ? (lhsOrder < rhsOrder ? -1 : 1) : 0;
         } else {

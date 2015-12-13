@@ -29,6 +29,7 @@ import android.os.SystemClock;
 import android.preference.PreferenceManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +67,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     protected SensorManager sensorManager;
     protected LocationManager locationManager;
     protected SharedPreferences prefs;
+    protected PhysicalRecorderComparator physicalComparator;
 
     protected List<OnRecordingListener> onRecordingListeners = new ArrayList<>();
     protected List<Recorder> recorders;
@@ -124,6 +126,9 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         }
 
         recorders.add(new BatteryRecorder(this));
+
+        physicalComparator = new PhysicalRecorderComparator();
+        Collections.sort(recorders, physicalComparator);
     }
 
     @Override
@@ -172,6 +177,10 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
 
     public List<Recorder> getAll() {
         return recorders;
+    }
+
+    public PhysicalRecorderComparator getPhysicalComparator() {
+        return physicalComparator;
     }
 
     public long getDuration(long millisecond) {

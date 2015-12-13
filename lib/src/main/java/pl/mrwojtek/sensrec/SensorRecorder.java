@@ -29,11 +29,14 @@ import android.hardware.SensorManager;
  */
 public class SensorRecorder implements Recorder, SensorEventListener {
 
+    private static final String PREF_KEY = "sensor_%d_%d";
+
     protected FrequencyMeasure measure = new FrequencyMeasure();
     protected SensorsRecorder sensorsRecorder;
     protected Sensor sensor;
     protected boolean sensorDefault;
     protected String shortName;
+    protected String prefKey;
 
     protected short typeId;
     protected short accuracyId;
@@ -51,6 +54,7 @@ public class SensorRecorder implements Recorder, SensorEventListener {
         this.typeId = SensorsRecorder.getSensorTypeId(sensor.getType());
         this.accuracyId = SensorsRecorder.getSensorAccuracyId(sensor.getType());
         this.deviceId = (short) number;
+        this.prefKey = String.format(PREF_KEY, sensor.getType(), number);
     }
 
     @Override
@@ -61,6 +65,11 @@ public class SensorRecorder implements Recorder, SensorEventListener {
     @Override
     public short getDeviceId() {
         return deviceId;
+    }
+
+    @Override
+    public String getPrefKey() {
+        return prefKey;
     }
 
     @Override

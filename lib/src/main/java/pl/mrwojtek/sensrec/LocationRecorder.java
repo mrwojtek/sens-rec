@@ -29,6 +29,8 @@ import android.os.Bundle;
  */
 public class LocationRecorder implements Recorder, LocationListener {
 
+    public static final String PREF_KEY = "sensor_location";
+
     protected FrequencyMeasure measure = new FrequencyMeasure();
     protected SensorsRecorder sensorsRecorder;
 
@@ -44,6 +46,11 @@ public class LocationRecorder implements Recorder, LocationListener {
     @Override
     public short getDeviceId() {
         return 0;
+    }
+
+    @Override
+    public String getPrefKey() {
+        return PREF_KEY;
     }
 
     @Override

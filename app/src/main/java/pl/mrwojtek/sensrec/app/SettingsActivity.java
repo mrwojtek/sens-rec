@@ -25,17 +25,15 @@ import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
-import android.preference.SwitchPreference;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 
-import java.util.Collections;
 import java.util.List;
 
 import pl.mrwojtek.sensrec.PhysicalRecorderComparator;
 import pl.mrwojtek.sensrec.Recorder;
 import pl.mrwojtek.sensrec.SensorsRecorder;
+import pl.mrwojtek.sensrec.app.util.SwitchPreference;
 
 /**
  * Activity for configuring recording.
@@ -99,26 +97,14 @@ public class SettingsActivity extends AppCompatActivity {
             PreferenceCategory sensors = (PreferenceCategory) getPreferenceScreen()
                     .findPreference(KEY_SENSORS);
 
-            SensorsRecorder recorder = new SensorsRecorder(getActivity());
+            SensorsRecorder recorder = RecordingService.getRecorder(getActivity());
+            PhysicalRecorderComparator physicalComparator = recorder.getPhysicalComparator();
             List<Recorder> all = recorder.getAll();
-            Collections.sort(all, new PhysicalRecorderComparator());
-            for (Recorder r : all) {
+            for (int i = 0; i < all.size(); ++i) {
+                Recorder r = all.get(i);
                 Preference pref = new SwitchPreference(getActivity());
-                pref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                    @Override
-                    public boolean onPreferenceClick(Preference preference) {
-                        Log.i("SensRec", "Clicked");
-                        return false;
-                    }
-                });
-                pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-                    @Override
-                    public boolean onPreferenceChange(Preference preference, Object newValue) {
-                        Log.i("SensRec", "Changed");
-                        return true;
-                    }
-                });
-                pref.setKey("pref_sensor");
+                pref.setKey(r.getPrefKey());
+                pref.setDefaultValue(physicalComparator.isDefaultEnabled(r));
                 pref.setTitle(r.getShortName());
                 pref.setSummary(r.getDescription());
                 sensors.addPreference(pref);
@@ -133,7 +119,6 @@ public class SettingsActivity extends AppCompatActivity {
 
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-            Log.i("SensRec", "Changed " + key);
             if (SensorsRecorder.PREF_SAMPLING_PERIOD.equals(key)) {
                 samplingPref.setSummary(getSamplingSummary());
             } else if (SensorsRecorder.PREF_NETWORK_SAVE.equals(key) ||

@@ -26,6 +26,8 @@ import android.location.GpsStatus;
  */
 public class NmeaRecorder implements Recorder, GpsStatus.NmeaListener {
 
+    public static final String PREF_KEY = "sensor_nmea";
+
     protected FrequencyMeasure measure = new FrequencyMeasure(1000, 5000, 100);
     protected SensorsRecorder sensorsRecorder;
 
@@ -41,6 +43,11 @@ public class NmeaRecorder implements Recorder, GpsStatus.NmeaListener {
     @Override
     public short getDeviceId() {
         return 0;
+    }
+
+    @Override
+    public String getPrefKey() {
+        return PREF_KEY;
     }
 
     @Override

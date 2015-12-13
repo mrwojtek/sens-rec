@@ -28,6 +28,8 @@ import android.os.BatteryManager;
  */
 public class BatteryRecorder implements Recorder, Runnable {
 
+    public static final String PREF_KEY = "sensor_battery";
+
     protected static final int BATTERY_INTERVAL = 5000;
 
     protected FrequencyMeasure measure = new FrequencyMeasure(10000, 20000, 3);
@@ -45,6 +47,11 @@ public class BatteryRecorder implements Recorder, Runnable {
     @Override
     public short getDeviceId() {
         return 0;
+    }
+
+    @Override
+    public String getPrefKey() {
+        return PREF_KEY;
     }
 
     @Override

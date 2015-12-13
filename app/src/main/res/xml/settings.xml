@@ -5,21 +5,21 @@
         android:key="pref_record"
         android:title="@string/pref_record_title" >
 
-        <SwitchPreference
+        <pl.mrwojtek.sensrec.app.util.SwitchPreference
             android:key="pref_file_save"
             android:title="@string/pref_file_save"
             android:defaultValue="true" />
 
-        <Preference
+        <pl.mrwojtek.sensrec.app.util.Preference
             android:key="pref_network"
             android:title="@string/pref_network" />
 
-        <SwitchPreference
+        <pl.mrwojtek.sensrec.app.util.SwitchPreference
             android:key="pref_save_binary"
             android:title="@string/pref_save_binary"
             android:defaultValue="true" />
 
-        <Preference
+        <pl.mrwojtek.sensrec.app.util.Preference
             android:key="pref_sampling_period"
             android:title="@string/pref_sampling_period" />
 
@@ -27,8 +27,6 @@
 
     <PreferenceCategory
         android:key="pref_sensors"
-        android:title="@string/pref_sensors_title" >
-
-    </PreferenceCategory>
+        android:title="@string/pref_sensors_title" />
 
 </PreferenceScreen>

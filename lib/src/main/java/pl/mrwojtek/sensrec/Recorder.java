@@ -37,6 +37,13 @@ public interface Recorder {
     short getDeviceId();
 
     /**
+     * Unique string that identifies this recorder in preferences
+     *
+     * @return preference key name
+     */
+    String getPrefKey();
+
+    /**
      * Short name uniquely identifying this sensor.
      * @return short name
      */
