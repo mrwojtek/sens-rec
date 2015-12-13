@@ -44,7 +44,9 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     public static final String PREF_NETWORK_HOST = "pref_network_host";
     public static final String PREF_NETWORK_PROTOCOL = "pref_network_protocol";
     public static final String PREF_NETWORK_PORT = "pref_network_port";
+    public static final String PREF_SAVE_BINARY = "pref_save_binary";
     public static final String PREF_SAMPLING_PERIOD = "pref_sampling_period";
+    public static final String PREF_SENSOR_PREFIX = "sensor_";
 
     public static final int DEFAULT_PORT = 44335;
     public static final int DEFAULT_PROTOCOL = 0;
@@ -135,6 +137,14 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (PREF_FILE_SAVE.equals(key)) {
             notifyOutput();
+        } else if (isRecording() && key != null && key.startsWith(PREF_SENSOR_PREFIX)) {
+            for (Recorder recorder : recorders) {
+                if (isEnabled(recorder)) {
+                    recorder.start();
+                } else {
+                    recorder.stop();
+                }
+            }
         }
     }
 
@@ -207,6 +217,10 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         return paused;
     }
 
+    public boolean isRecording() {
+        return active && !paused;
+    }
+
     public void start() {
         if (!active) {
             lastTime = SystemClock.elapsedRealtime();
@@ -245,7 +259,9 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
 
     protected void startSensors() {
         for (Recorder recorder : recorders) {
-            recorder.start();
+            if (isEnabled(recorder)) {
+                recorder.start();
+            }
         }
     }
 
@@ -253,6 +269,11 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         for (Recorder recorder : recorders) {
             recorder.stop();
         }
+    }
+
+    protected boolean isEnabled(Recorder recorder) {
+        return prefs.getBoolean(recorder.getPrefKey(),
+                physicalComparator.isDefaultEnabled(recorder));
     }
 
     protected String getBatteryVoltageName() {

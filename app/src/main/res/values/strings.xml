@@ -40,6 +40,7 @@
     <string name="pref_sampling_period_constant">Set to constant %1$s</string>
     <string name="pref_save_binary">Save in binary</string>
     <string name="pref_sensors_title">Sensors</string>
+    <string name="pref_sensors_restart">Re-start logging to apply</string>
 
     <!-- Preference dialgos -->
     <string name="sampling_period_title">Set sampling period</string>

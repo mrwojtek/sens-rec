@@ -25,6 +25,7 @@ import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 
@@ -55,6 +56,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static class SettingsFragment extends PreferenceFragment implements
             SharedPreferences.OnSharedPreferenceChangeListener {
 
+        private SensorsRecorder recorder;
         private SharedPreferences preferences;
         private Preference samplingPref;
         private Preference networkPref;
@@ -97,7 +99,7 @@ public class SettingsActivity extends AppCompatActivity {
             PreferenceCategory sensors = (PreferenceCategory) getPreferenceScreen()
                     .findPreference(KEY_SENSORS);
 
-            SensorsRecorder recorder = RecordingService.getRecorder(getActivity());
+            recorder = RecordingService.getRecorder(getActivity());
             PhysicalRecorderComparator physicalComparator = recorder.getPhysicalComparator();
             List<Recorder> all = recorder.getAll();
             for (int i = 0; i < all.size(); ++i) {
@@ -126,6 +128,12 @@ public class SettingsActivity extends AppCompatActivity {
                     SensorsRecorder.PREF_NETWORK_PORT.equals(key) ||
                     SensorsRecorder.PREF_NETWORK_PROTOCOL.equals(key)) {
                 networkPref.setSummary(getNetworkSummary());
+            }
+
+            if (recorder.isRecording() && (SensorsRecorder.PREF_SAMPLING_PERIOD.equals(key) ||
+                    SensorsRecorder.PREF_SAVE_BINARY.equals(key))) {
+                Snackbar.make(getView(), R.string.pref_sensors_restart, Snackbar.LENGTH_LONG)
+                        .show();
             }
         }
 

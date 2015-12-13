@@ -26,10 +26,11 @@ import android.location.GpsStatus;
  */
 public class NmeaRecorder implements Recorder, GpsStatus.NmeaListener {
 
-    public static final String PREF_KEY = "sensor_nmea";
+    public static final String PREF_KEY = SensorsRecorder.PREF_SENSOR_PREFIX + "nmea";
 
     protected FrequencyMeasure measure = new FrequencyMeasure(1000, 5000, 100);
     protected SensorsRecorder sensorsRecorder;
+    protected boolean started;
 
     public NmeaRecorder(SensorsRecorder sensorsRecorder) {
         this.sensorsRecorder = sensorsRecorder;
@@ -67,12 +68,18 @@ public class NmeaRecorder implements Recorder, GpsStatus.NmeaListener {
 
     @Override
     public void start() {
-        sensorsRecorder.getLocationManager().addNmeaListener(this);
+        if (!started) {
+            sensorsRecorder.getLocationManager().addNmeaListener(this);
+            started = true;
+        }
     }
 
     @Override
     public void stop() {
-        sensorsRecorder.getLocationManager().removeNmeaListener(this);
+        if (started) {
+            sensorsRecorder.getLocationManager().removeNmeaListener(this);
+            started = false;
+        }
     }
 
     @Override

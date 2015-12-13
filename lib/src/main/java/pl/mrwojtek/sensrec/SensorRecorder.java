@@ -29,18 +29,20 @@ import android.hardware.SensorManager;
  */
 public class SensorRecorder implements Recorder, SensorEventListener {
 
-    private static final String PREF_KEY = "sensor_%d_%d";
+    private static final String PREF_KEY = SensorsRecorder.PREF_SENSOR_PREFIX + "%d_%d";
 
     protected FrequencyMeasure measure = new FrequencyMeasure();
     protected SensorsRecorder sensorsRecorder;
     protected Sensor sensor;
+
     protected boolean sensorDefault;
     protected String shortName;
     protected String prefKey;
-
     protected short typeId;
     protected short accuracyId;
     protected short deviceId;
+
+    protected boolean started;
 
     /*protected Output.Record record;
     protected Output.Record accuracyRecord;*/
@@ -89,14 +91,19 @@ public class SensorRecorder implements Recorder, SensorEventListener {
 
     @Override
     public void start() {
-        sensorsRecorder.getSensorManager()
-                .registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
+        if (!started) {
+            sensorsRecorder.getSensorManager()
+                    .registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
+            started = true;
+        }
     }
 
     @Override
     public void stop() {
-        sensorsRecorder.getSensorManager()
-                .unregisterListener(this, sensor);
+        if (started) {
+            sensorsRecorder.getSensorManager().unregisterListener(this, sensor);
+            started = false;
+        }
     }
 
     @Override

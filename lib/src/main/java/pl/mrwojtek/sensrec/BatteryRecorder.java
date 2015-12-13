@@ -28,12 +28,13 @@ import android.os.BatteryManager;
  */
 public class BatteryRecorder implements Recorder, Runnable {
 
-    public static final String PREF_KEY = "sensor_battery";
+    public static final String PREF_KEY = SensorsRecorder.PREF_SENSOR_PREFIX + "battery";
 
     protected static final int BATTERY_INTERVAL = 5000;
 
     protected FrequencyMeasure measure = new FrequencyMeasure(10000, 20000, 3);
     protected SensorsRecorder sensorsRecorder;
+    protected boolean started;
 
     public BatteryRecorder(SensorsRecorder sensorsRecorder) {
         this.sensorsRecorder = sensorsRecorder;
@@ -71,12 +72,18 @@ public class BatteryRecorder implements Recorder, Runnable {
 
     @Override
     public void start() {
-        sensorsRecorder.getUiHandler().post(this);
+        if (!started) {
+            sensorsRecorder.getUiHandler().post(this);
+            started = true;
+        }
     }
 
     @Override
     public void stop() {
-        sensorsRecorder.getUiHandler().removeCallbacks(this);
+        if (started) {
+            sensorsRecorder.getUiHandler().removeCallbacks(this);
+            started = false;
+        }
     }
 
     @Override

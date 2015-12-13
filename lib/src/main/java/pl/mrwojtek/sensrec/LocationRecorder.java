@@ -29,10 +29,11 @@ import android.os.Bundle;
  */
 public class LocationRecorder implements Recorder, LocationListener {
 
-    public static final String PREF_KEY = "sensor_location";
+    public static final String PREF_KEY = SensorsRecorder.PREF_SENSOR_PREFIX + "location";
 
     protected FrequencyMeasure measure = new FrequencyMeasure();
     protected SensorsRecorder sensorsRecorder;
+    protected boolean started;
 
     public LocationRecorder(SensorsRecorder sensorsRecorder) {
         this.sensorsRecorder = sensorsRecorder;
@@ -70,13 +71,19 @@ public class LocationRecorder implements Recorder, LocationListener {
 
     @Override
     public void start() {
-        sensorsRecorder.getLocationManager()
-                .requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+        if (!started) {
+            sensorsRecorder.getLocationManager()
+                    .requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+            started = true;
+        }
     }
 
     @Override
     public void stop() {
-        sensorsRecorder.getLocationManager().removeUpdates(this);
+        if (started) {
+            sensorsRecorder.getLocationManager().removeUpdates(this);
+            started = false;
+        }
     }
 
     @Override
