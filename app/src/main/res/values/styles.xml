@@ -25,15 +25,33 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="spinnerStyle">@style/Widget.AppCompat.Spinner.Underlined</item>
+        <item name="editTextStyle">@style/EditTextStyle</item>
+        <item name="spinnerStyle">@style/SpinnerStyle</item>
         <item name="android:spinnerItemStyle">@style/SpinnerItem</item>
         <item name="android:spinnerDropDownItemStyle">@style/SpinnerDropDownItem</item>
+    </style>
+
+    <style name="EditTextStyle" parent="@style/Widget.AppCompat.EditText">
+        <item name="android:paddingLeft">8dp</item>
+        <item name="android:paddingRight">8dp</item>
+    </style>
+
+    <style name="SpinnerCaption" parent="@style/TextAppearance.AppCompat.Caption">
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:paddingLeft">8dp</item>
+        <item name="android:textColor">?android:attr/textColorHint</item>
+    </style>
+
+    <style name="SpinnerStyle" parent="@style/Widget.AppCompat.Spinner.Underlined">
+        <item name="android:paddingLeft">0dp</item>
     </style>
 
     <style name="SpinnerItem" parent="@style/Widget.AppCompat.TextView.SpinnerItem">
         <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
         <item name="android:textColor">?attr/editTextColor</item>
-        <item name="android:paddingLeft">4dp</item>
+        <item name="android:paddingLeft">8dp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">0dp</item>
     </style>
 
     <style name="SpinnerDropDownItem" parent="@style/Widget.AppCompat.DropDownItem.Spinner">

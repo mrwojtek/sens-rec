@@ -40,6 +40,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import pl.mrwojtek.sensrec.SensorsRecorder;
 import pl.mrwojtek.sensrec.app.R;
@@ -48,7 +49,7 @@ import pl.mrwojtek.sensrec.app.R;
  * Allows to configure sampling period for sensors.
  */
 public class SamplingPeriodPreferenceDialog extends DialogFragment implements
-        DialogInterface.OnClickListener{
+        DialogInterface.OnClickListener, DialogInterface.OnShowListener {
 
     public static final String DIALOG_TAG = "SamplingPeriodPreferenceDialog";
     public static final String TAG = "SensRec";
@@ -97,17 +98,13 @@ public class SamplingPeriodPreferenceDialog extends DialogFragment implements
         builder.setView(view);
         builder.setNegativeButton(R.string.action_cancel, null);
         builder.setPositiveButton(R.string.action_ok, this);
+        return MaterialUtils.fixTitle(context, builder.create(), this);
+    }
 
-        AlertDialog dialog = builder.create();
-        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-            @Override
-            public void onShow(DialogInterface dialog) {
-                okButton = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE);
-                updateOkButton();
-            }
-        });
-
-        return dialog;
+    @Override
+    public void onShow(DialogInterface dialog) {
+        okButton = ((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE);
+        updateOkButton();
     }
 
     @Override
@@ -148,7 +145,7 @@ public class SamplingPeriodPreferenceDialog extends DialogFragment implements
 
         // If set to custom then set edit text value
         if (position == POSITION_CUSTOM) {
-            millisecondsEdit.setText(Long.toString(delay));
+            millisecondsEdit.setText(String.format("%d", delay));
         } else {
             millisecondsEdit.setText("");
         }
@@ -180,6 +177,9 @@ public class SamplingPeriodPreferenceDialog extends DialogFragment implements
     }
 
     private void initializeSamplingSpinner(View view) {
+        TextView samplingCaption = (TextView) view.findViewById(R.id.sampling_caption);
+        MaterialUtils.transformForSpinner(samplingCaption);
+
         samplingSpinner = (Spinner) view.findViewById(R.id.sampling_spinner);
         samplingSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -216,10 +216,8 @@ public class SamplingPeriodPreferenceDialog extends DialogFragment implements
 
     private void initializeMillisecondsEdit(View view) {
         millisecondsEdit = (EditText) view.findViewById(R.id.milliseconds_edit);
-        millisecondsEdit.setMinimumWidth(millisecondsEdit.getCompoundPaddingLeft() +
-                millisecondsEdit.getCompoundPaddingRight() +
-                (int) Math.round(Math.ceil(millisecondsEdit.getPaint().measureText(
-                        getString(R.string.sampling_period_milliseconds_text)))));
+        millisecondsEdit.setMinimumWidth(MaterialUtils.calculateWidth(millisecondsEdit,
+                new String[]{getString(R.string.sampling_period_milliseconds_text)}));
         millisecondsEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {

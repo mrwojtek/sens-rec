@@ -38,6 +38,7 @@
     <string name="pref_sampling_period">Sampling period</string>
     <string name="pref_sampling_period_value">Set to %1$dms</string>
     <string name="pref_sampling_period_constant">Set to constant %1$s</string>
+    <string name="pref_save_binary">Save in binary</string>
     <string name="pref_sensors_title">Sensors</string>
 
     <!-- Preference dialgos -->

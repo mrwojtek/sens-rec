@@ -28,15 +28,13 @@
             android:id="@+id/host_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/network_switch" >
+            android:layout_below="@id/network_switch"
+            android:layout_marginBottom="12dp" >
 
             <EditText
                 android:id="@+id/host_edit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
                 android:hint="@string/network_host" />
 
         </android.support.design.widget.TextInputLayout>
@@ -46,23 +44,20 @@
             android:orientation="vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/host_layout" >
+            android:layout_below="@id/host_layout"
+            android:baselineAligned="true" >
 
             <TextView
-                style="@style/TextAppearance.AppCompat.Caption"
+                style="@style/SpinnerCaption"
                 android:id="@+id/protocol_caption"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="3dp"
-                android:includeFontPadding="false"
-                android:paddingLeft="8dp"
                 android:text="@string/network_protocol" />
 
             <android.support.v7.widget.AppCompatSpinner
                 android:id="@+id/protocol_spinner"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
                 android:spinnerMode="dropdown"
                 android:entries="@array/network_protocol_values" />
 
@@ -78,8 +73,6 @@
                 android:id="@+id/port_edit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
                 android:inputType="number"
                 android:gravity="right"
                 android:hint="@string/network_port" />

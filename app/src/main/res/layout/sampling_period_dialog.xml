@@ -17,13 +17,10 @@
         android:focusableInTouchMode="true" >
 
         <TextView
-            style="@style/TextAppearance.AppCompat.Caption"
+            style="@style/SpinnerCaption"
             android:id="@+id/sampling_caption"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="3dp"
-            android:includeFontPadding="false"
-            android:paddingLeft="8dp"
             android:text="@string/sampling_period_constants_text" />
 
         <android.support.v7.widget.AppCompatSpinner
@@ -44,8 +41,6 @@
                 android:id="@+id/milliseconds_edit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
                 android:inputType="number"
                 android:gravity="right"
                 android:hint="@string/sampling_period_milliseconds_text" />
