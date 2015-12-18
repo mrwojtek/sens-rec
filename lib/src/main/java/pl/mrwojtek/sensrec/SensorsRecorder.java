@@ -53,14 +53,24 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     public static final String DEFAULT_HOST = "";
     public static final boolean DEFAULT_NETWORK_SAVE = false;
     public static final boolean DEFAULT_FILE_SAVE = true;
+    public static final boolean DEFAULT_SAVE_BINARY = true;
     public static final long DEFAULT_SAMPLING_PERIOD = SensorManager.SENSOR_DELAY_NORMAL;
 
     public static final short TYPE_START = -1;
-    public static final short TYPE_END = -2;
-    public static final short TYPE_DEVICE = -3;
-    public static final short TYPE_BATTERY_VOLTAGE = -4;
-    public static final short TYPE_GPS = -5;
-    public static final short TYPE_GPS_NMEA = -6;
+    public static final short TYPE_PAUSE = -2;
+    public static final short TYPE_END = -3;
+    public static final short TYPE_DEVICE = -4;
+    public static final short TYPE_BATTERY_VOLTAGE = -5;
+    public static final short TYPE_GPS = -6;
+    public static final short TYPE_GPS_NMEA = -7;
+
+    private static final int LOG_VERSION = 1100;
+
+    private static final String SEPARATOR = "\t";
+    private static final String NEW_LINE = "\n";
+    private static final String PREFIX_UNKNOWN = "unknown";
+    private static final String BINARY_FILE_NAME = "Recording %d.bin";
+    private static final String TEXT_FILE_NAME = "Recording %d.txt";
 
     private static final String TAG = "SensRec";
 
@@ -69,10 +79,10 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     protected SensorManager sensorManager;
     protected LocationManager locationManager;
     protected SharedPreferences prefs;
-    protected PhysicalRecorderComparator physicalComparator;
-
     protected List<OnRecordingListener> onRecordingListeners = new ArrayList<>();
+    protected PhysicalRecorderComparator physicalComparator;
     protected List<Recorder> recorders;
+    protected RecorderOutput output;
 
     protected long lastDuration;
     protected long lastTime;
@@ -92,6 +102,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         uiHandler = new Handler(context.getMainLooper());
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        output = new RecorderOutput(this);
         initialize();
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
         prefs.registerOnSharedPreferenceChangeListener(this);
@@ -193,6 +204,10 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         return physicalComparator;
     }
 
+    public RecorderOutput getOutput() {
+        return output;
+    }
+
     public long getDuration(long millisecond) {
         if (active && !paused) {
             return lastDuration + millisecond - lastTime;
@@ -202,7 +217,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     }
 
     public boolean isSaving() {
-        return prefs.getBoolean(PREF_FILE_SAVE, true);
+        return prefs.getBoolean(PREF_FILE_SAVE, DEFAULT_FILE_SAVE);
     }
 
     public boolean isStreaming() {
@@ -227,6 +242,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
             lastDuration = 0;
             active = true;
             paused = false;
+            startOutput();
             startSensors();
             notifyStarted();
         } else if (paused) {
@@ -253,8 +269,22 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
             }
             active = false;
             stopSensors();
+            stopOutput();
             notifyStopped();
         }
+    }
+
+    protected void startOutput() {
+        boolean binary = prefs.getBoolean(PREF_SAVE_BINARY, DEFAULT_SAVE_BINARY);
+        if (binary) {
+            output.start(true, BINARY_FILE_NAME);
+        } else {
+            output.start(false, TEXT_FILE_NAME);
+        }
+    }
+
+    protected void stopOutput() {
+        output.stop();
     }
 
     protected void startSensors() {
@@ -274,6 +304,120 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     protected boolean isEnabled(Recorder recorder) {
         return prefs.getBoolean(recorder.getPrefKey(),
                 physicalComparator.isDefaultEnabled(recorder));
+    }
+
+    public void recordStart(Output.Record record) {
+        long time = SystemClock.elapsedRealtime();
+        long wallTime = System.currentTimeMillis();
+        record.start(TYPE_START, (short) 0)
+                .write(time)
+                .write(wallTime)
+                .write(LOG_VERSION)
+                .save();
+    }
+
+    public void recordStop(Output.Record record) {
+        long time = SystemClock.elapsedRealtime();
+        long wallTime = System.currentTimeMillis();
+        record.start(TYPE_END, (short) 0)
+                .write(time)
+                .write(wallTime)
+                .save();
+    }
+
+    public String getTextSeparator() {
+        return SEPARATOR;
+    }
+
+    public String getTextNewLine() {
+        return NEW_LINE;
+    }
+
+    public String getTypePrefix(short typeId, short deviceId) {
+        if (typeId < 0) {
+            return getOtherTypePrefix(typeId);
+        } else {
+            String prefix = getSensorTypePrefix((short) (typeId / 2));
+            if (!PREFIX_UNKNOWN.equals(prefix)) {
+                if (typeId < 0 || typeId % 2 == 0) {
+                    return String.format("%s_%d", prefix, deviceId);
+                } else {
+                    return String.format("%s_%d_acc", prefix, deviceId);
+                }
+            } else {
+                return prefix;
+            }
+        }
+    }
+
+    protected String getOtherTypePrefix(short typeId) {
+        switch (typeId) {
+            case TYPE_START:
+                return "start";
+            case TYPE_PAUSE:
+                return "pause";
+            case TYPE_END:
+                return "end";
+            case TYPE_DEVICE:
+                return "device";
+            case TYPE_BATTERY_VOLTAGE:
+                return "bat";
+            case TYPE_GPS:
+                return "gps";
+            case TYPE_GPS_NMEA:
+                return "nmea";
+            default:
+                return PREFIX_UNKNOWN;
+        }
+    }
+
+    protected String getSensorTypePrefix(short typeId) {
+        switch (typeId) {
+            case Sensor.TYPE_ACCELEROMETER:
+                return "accel";
+            case Sensor.TYPE_AMBIENT_TEMPERATURE:
+                return "amb";
+            case Sensor.TYPE_GAME_ROTATION_VECTOR:
+                return "rotg";
+            case Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR:
+                return "rotgeo";
+            case Sensor.TYPE_GRAVITY:
+                return "grav";
+            case Sensor.TYPE_GYROSCOPE:
+                return "gyro";
+            case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:
+                return "ugyro";
+            case Sensor.TYPE_HEART_RATE:
+                return "heart";
+            case Sensor.TYPE_LIGHT:
+                return "light";
+            case Sensor.TYPE_LINEAR_ACCELERATION:
+                return "lacc";
+            case Sensor.TYPE_MAGNETIC_FIELD:
+                return "magn";
+            case Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED:
+                return "umagn";
+            case Sensor.TYPE_ORIENTATION:
+                return "orient";
+            case Sensor.TYPE_PRESSURE:
+                return "press";
+            case Sensor.TYPE_PROXIMITY:
+                return "prox";
+            case Sensor.TYPE_RELATIVE_HUMIDITY:
+                return "humi";
+            case Sensor.TYPE_ROTATION_VECTOR:
+                return "rotv";
+            case Sensor.TYPE_SIGNIFICANT_MOTION:
+                return "motion";
+            case Sensor.TYPE_STEP_COUNTER:
+                return "stepc";
+            case Sensor.TYPE_STEP_DETECTOR:
+                return "stepd";
+            case Sensor.TYPE_TEMPERATURE:
+                return "temp";
+            default:
+                return PREFIX_UNKNOWN;
+        }
     }
 
     protected String getBatteryVoltageName() {
