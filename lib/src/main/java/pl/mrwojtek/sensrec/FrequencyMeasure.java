@@ -56,15 +56,17 @@ public class FrequencyMeasure {
         measures = new long[size];
     }
 
-    public synchronized void onNewSample() {
-        add(SystemClock.elapsedRealtime());
+    public synchronized long onNewSample() {
+        try {
+            return add(SystemClock.elapsedRealtime());
+        } finally {
+            while (size > 2 && measures[last] - measures[first] > maximumInterval) {
+                remove();
+            }
 
-        while (size > 2 && measures[last] - measures[first] > maximumInterval) {
-            remove();
-        }
-
-        if (size == 2 && measures[last] - measures[first] > quietInterval) {
-            remove();
+            if (size == 2 && measures[last] - measures[first] > quietInterval) {
+                remove();
+            }
         }
     }
 
@@ -96,7 +98,7 @@ public class FrequencyMeasure {
 		}
 	}
 
-    private void add(long value) {
+    private long add(long value) {
         if (size != 0) {
             if (size == measures.length) {
                 last = first;
@@ -108,7 +110,7 @@ public class FrequencyMeasure {
         } else {
             ++size;
         }
-        measures[last] = value;
+        return measures[last] = value;
     }
 
     private void remove() {

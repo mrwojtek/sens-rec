@@ -40,7 +40,8 @@ public abstract class Output {
         Record write(int value);
         Record write(long value);
         Record write(float value);
-        Record write(String value);
+        Record write(double value);
+        Record write(String value, int offset, int count);
         void save();
     }
 
@@ -72,7 +73,12 @@ public abstract class Output {
         }
 
         @Override
-        public Record write(String value) {
+        public Record write(double value) {
+            return this;
+        }
+
+        @Override
+        public Record write(String value, int offset, int count) {
             return this;
         }
 
@@ -121,8 +127,14 @@ public abstract class Output {
         }
 
         @Override
-        public Record write(String value) {
+        public Record write(double value) {
             wrapped.write(value);
+            return this;
+        }
+
+        @Override
+        public Record write(String value, int offset, int count) {
+            wrapped.write(value, offset, count);
             return this;
         }
 
@@ -218,11 +230,25 @@ public abstract class Output {
         }
 
         @Override
-        public Output.Record write(String value) {
+        public Output.Record write(double value) {
             try {
                 if (getWriter() != null) {
-                    getWriter().writeBytes(value);
-                    onWritten(value.length());
+                    getWriter().writeDouble(value);
+                    onWritten(4);
+                }
+            } catch (IOException ex) {
+                Log.e(TAG, "Error writing float: " + ex.getMessage());
+                onException(ex);
+            }
+            return this;
+        }
+
+        @Override
+        public Output.Record write(String value, int offset, int count) {
+            try {
+                if (getWriter() != null) {
+                    getWriter().write(value.getBytes(), offset, count);
+                    onWritten(count);
                 }
             } catch (IOException ex) {
                 Log.e(TAG, "Error writing String: " + ex.getMessage());

@@ -23,6 +23,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.SystemClock;
 
 /**
  * Recorder for various phone sensors.
@@ -44,9 +45,6 @@ public class SensorRecorder implements Recorder, SensorEventListener {
 
     protected boolean started;
 
-    /*protected Output.Record record;
-    protected Output.Record accuracyRecord;*/
-
     public SensorRecorder(SensorsRecorder sensorsRecorder, Sensor sensor, int number,
                           String shortName, boolean sensorDefault) {
         this.sensorsRecorder = sensorsRecorder;
@@ -57,6 +55,10 @@ public class SensorRecorder implements Recorder, SensorEventListener {
         this.accuracyId = SensorsRecorder.getSensorAccuracyId(sensor.getType());
         this.deviceId = (short) number;
         this.prefKey = String.format(PREF_KEY, sensor.getType(), number);
+    }
+
+    public short getAccuracyId() {
+        return accuracyId;
     }
 
     @Override
@@ -108,30 +110,30 @@ public class SensorRecorder implements Recorder, SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        measure.onNewSample();
+        long millisecond = measure.onNewSample();
 
-        /*record.start();
-        try {
-            record.write(System.currentTimeMillis());
-            record.write(event.timestamp);
-            record.write(event.values.length);
-            for (float value : event.values) {
-                record.write(value);
-            }
-        } finally {
-            record.over();
-        }*/
+        Output.Record record = sensorsRecorder.getOutput()
+                .start(getTypeId(), getDeviceId())
+                .write(millisecond)
+                .write(event.timestamp)
+                .write((short) event.values.length);
+
+        for (float value : event.values) {
+            record.write(value);
+        }
+
+        record.save();
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        /*accuracyRecord.start();
-        try {
-            record.write(System.currentTimeMillis());
-            record.write(accuracy);
-        } finally {
-            accuracyRecord.over();
-        }*/
+        long millisecond = SystemClock.elapsedRealtime();
+
+        sensorsRecorder.getOutput()
+                .start(getAccuracyId(), getDeviceId())
+                .write(millisecond)
+                .write(accuracy)
+                .save();
     }
 
 }

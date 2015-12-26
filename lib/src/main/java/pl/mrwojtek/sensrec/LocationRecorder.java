@@ -88,7 +88,18 @@ public class LocationRecorder implements Recorder, LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
-        measure.onNewSample();
+        long millisecond = measure.onNewSample();
+        sensorsRecorder.getOutput()
+                .start(SensorsRecorder.TYPE_GPS, getDeviceId())
+                .write(millisecond)
+                .write(location.getLatitude())
+                .write(location.getLongitude())
+                .write(location.getAltitude())
+                .write(location.getBearing())
+                .write(location.getSpeed())
+                .write(location.getAccuracy())
+                .write(location.getTime())
+                .save();
     }
 
     @Override

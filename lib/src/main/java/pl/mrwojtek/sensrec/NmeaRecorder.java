@@ -84,6 +84,20 @@ public class NmeaRecorder implements Recorder, GpsStatus.NmeaListener {
 
     @Override
     public void onNmeaReceived(long timestamp, String nmea) {
-        measure.onNewSample();
+        long millisecond = measure.onNewSample();
+
+        int count = nmea.length();
+        if (nmea.endsWith("\r\n")) {
+            count -= 2;
+        } else if (nmea.endsWith("\n")) {
+            count -= 1;
+        }
+
+        sensorsRecorder.getOutput()
+                .start(SensorsRecorder.TYPE_GPS_NMEA, getDeviceId())
+                .write(millisecond)
+                .write(timestamp)
+                .write(nmea, 0, count)
+                .save();
     }
 }

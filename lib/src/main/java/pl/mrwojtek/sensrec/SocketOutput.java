@@ -140,7 +140,7 @@ public class SocketOutput {
     private abstract class OutputThread implements Runnable {
 
         private static final long FIRST_TIMEOUT = 5000;
-        private static final long MAXIMUM_TIMEOUT = 300000;
+        private static final long MAXIMUM_TIMEOUT = 60000;
 
         protected String host;
         protected int port;

@@ -19,6 +19,8 @@
 
 package pl.mrwojtek.sensrec;
 
+import android.util.Log;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -89,7 +91,7 @@ public class RecorderOutput extends Output {
 
     protected Output.Record formatRecord(Output.Record record) {
         if (binary) {
-            return record;
+            return new BinaryRecord(record);
         } else {
             return new TextRecord(record);
         }
@@ -147,9 +149,30 @@ public class RecorderOutput extends Output {
         }
 
         @Override
-        public Output.Record write(String value) {
+        public Output.Record write(double value) {
             fileRecord.write(value);
             socketRecord.write(value);
+            return this;
+        }
+
+        @Override
+        public Output.Record write(String value, int offset, int count) {
+            fileRecord.write(value, offset, count);
+            socketRecord.write(value, offset, count);
+            return this;
+        }
+    }
+
+    private class BinaryRecord extends RecordWrapper {
+
+        public BinaryRecord(Output.Record record) {
+            super(record);
+        }
+
+        @Override
+        public Output.Record write(String value, int offset, int count) {
+            super.write(count);
+            super.write(value, offset, count);
             return this;
         }
     }
@@ -175,7 +198,7 @@ public class RecorderOutput extends Output {
         public void save() {
             builder.append(sensorsRecorder.getTextNewLine());
             record.start((short) 0, (short) 0);
-            record.write(builder.toString());
+            record.write(builder.toString(), 0, builder.length());
             record.save();
         }
 
@@ -208,12 +231,18 @@ public class RecorderOutput extends Output {
         }
 
         @Override
-        public Output.Record write(String value) {
+        public Output.Record write(double value) {
             builder.append(sensorsRecorder.getTextSeparator());
             builder.append(value);
             return this;
         }
 
+        @Override
+        public Output.Record write(String value, int offset, int count) {
+            builder.append(sensorsRecorder.getTextSeparator());
+            builder.append(value, offset, offset + count);
+            return this;
+        }
     }
 
     private class CachedRecord extends Output.RecordWrapper {

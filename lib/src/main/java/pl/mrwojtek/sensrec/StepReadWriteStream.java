@@ -169,7 +169,7 @@ public class StepReadWriteStream extends OutputStream {
                 byteChannel.write(ByteBuffer.wrap(content, readPos, readCount));
             } else {
                 byteChannel.write(ByteBuffer.wrap(content, readPos, space));
-                byteChannel.write(ByteBuffer.wrap(content, readPos, readCount - space));
+                byteChannel.write(ByteBuffer.wrap(content, 0, readCount - space));
             }
             synchronized (content) {
                 readPos = (readPos + readCount) % content.length;

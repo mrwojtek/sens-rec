@@ -22,7 +22,6 @@ package pl.mrwojtek.sensrec;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
-import android.os.SystemClock;
 
 /**
  * Recorder for phone battery voltage.
@@ -92,8 +91,7 @@ public class BatteryRecorder implements Recorder, Runnable {
         IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent batteryStatus = sensorsRecorder.getContext().registerReceiver(null, filter);
 
-        measure.onNewSample();
-        long millisecond = SystemClock.elapsedRealtime();
+        long millisecond = measure.onNewSample();
         int temperature = batteryStatus.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1);
         int voltage = batteryStatus.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1);
         int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
