@@ -374,8 +374,8 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
             } else if (measure.getMeasure() == FrequencyMeasure.MEASURE_AMBIGUOUS) {
                 valueText.setText(getString(R.string.measure_ambiguous));
                 return false;
-            } else if (measure.getMeasure() == FrequencyMeasure.MEASURE_MISSING) {
-                valueText.setText(getString(R.string.measure_missing));
+            } else if (measure.getMeasure() == FrequencyMeasure.MEASURE_DISABLED) {
+                valueText.setText(getString(R.string.measure_disabled));
                 return false;
             }
             return false;

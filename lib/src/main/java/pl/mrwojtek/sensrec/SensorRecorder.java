@@ -97,6 +97,7 @@ public class SensorRecorder implements Recorder, SensorEventListener {
             sensorsRecorder.getSensorManager()
                     .registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
             started = true;
+            measure.onStarted();
         }
     }
 
@@ -105,6 +106,7 @@ public class SensorRecorder implements Recorder, SensorEventListener {
         if (started) {
             sensorsRecorder.getSensorManager().unregisterListener(this, sensor);
             started = false;
+            measure.onStopped();
         }
     }
 

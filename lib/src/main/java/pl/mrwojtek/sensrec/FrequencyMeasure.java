@@ -29,7 +29,7 @@ public class FrequencyMeasure {
     public static final int MEASURE_VALUE = 1;
     public static final int MEASURE_QUIET = 2;
     public static final int MEASURE_AMBIGUOUS = 3;
-    public static final int MEASURE_MISSING = 4;
+    public static final int MEASURE_DISABLED = 4;
 	
 	private static final int MAXIMUM_MEASURES = 20;
 	private static final int MAXIMUM_INTERVAL = 1000;
@@ -40,7 +40,7 @@ public class FrequencyMeasure {
     private int last;
     private int size;
 
-	private int measure = MEASURE_QUIET;
+	private int measure = MEASURE_DISABLED;
     private float value;
 
     private int maximumInterval;
@@ -54,6 +54,14 @@ public class FrequencyMeasure {
         this.maximumInterval = maximumInterval;
         this.quietInterval = quietInterval;
         measures = new long[size];
+    }
+
+    public synchronized void onStarted() {
+        measure = MEASURE_QUIET;
+    }
+
+    public synchronized void onStopped() {
+        measure = MEASURE_DISABLED;
     }
 
     public synchronized long onNewSample() {
@@ -83,6 +91,10 @@ public class FrequencyMeasure {
 
         while (size >= 1 && millisecond - measures[first] > quietInterval) {
             remove();
+        }
+
+        if (measure == MEASURE_DISABLED) {
+            return;
         }
 
 		if (size < 2) {

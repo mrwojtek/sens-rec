@@ -75,6 +75,7 @@ public class BatteryRecorder implements Recorder, Runnable {
         if (!started) {
             sensorsRecorder.getUiHandler().post(this);
             started = true;
+            measure.onStarted();
         }
     }
 
@@ -83,6 +84,7 @@ public class BatteryRecorder implements Recorder, Runnable {
         if (started) {
             sensorsRecorder.getUiHandler().removeCallbacks(this);
             started = false;
+            measure.onStopped();
         }
     }
 

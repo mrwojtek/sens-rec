@@ -71,6 +71,7 @@ public class NmeaRecorder implements Recorder, GpsStatus.NmeaListener {
         if (!started) {
             sensorsRecorder.getLocationManager().addNmeaListener(this);
             started = true;
+            measure.onStarted();
         }
     }
 
@@ -79,6 +80,7 @@ public class NmeaRecorder implements Recorder, GpsStatus.NmeaListener {
         if (started) {
             sensorsRecorder.getLocationManager().removeNmeaListener(this);
             started = false;
+            measure.onStopped();
         }
     }
 

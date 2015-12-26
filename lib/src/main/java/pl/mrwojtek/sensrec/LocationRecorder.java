@@ -75,6 +75,7 @@ public class LocationRecorder implements Recorder, LocationListener {
             sensorsRecorder.getLocationManager()
                     .requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
             started = true;
+            measure.onStarted();
         }
     }
 
@@ -83,6 +84,7 @@ public class LocationRecorder implements Recorder, LocationListener {
         if (started) {
             sensorsRecorder.getLocationManager().removeUpdates(this);
             started = false;
+            measure.onStopped();
         }
     }
 
