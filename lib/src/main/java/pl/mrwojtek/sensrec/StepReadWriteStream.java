@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.nio.ByteBuffer;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * Circular buffer with concurrent read and write for buffering packets
@@ -146,6 +148,28 @@ public class StepReadWriteStream extends OutputStream {
                 socket.send(packet);
                 packet.setData(content, 0, readCount - space);
                 socket.send(packet);
+            }
+            synchronized (content) {
+                readPos = (readPos + readCount) % content.length;
+                count -= readCount;
+                markCount -= readCount;
+            }
+        }
+        return readCount;
+    }
+
+    public int writeTo(WritableByteChannel byteChannel, int bytes) throws IOException {
+        int readCount;
+        synchronized (content) {
+            readCount = Math.min(count, bytes);
+        }
+        if (readCount > 0) {
+            int space = content.length - readPos;
+            if (space >= readCount) {
+                byteChannel.write(ByteBuffer.wrap(content, readPos, readCount));
+            } else {
+                byteChannel.write(ByteBuffer.wrap(content, readPos, space));
+                byteChannel.write(ByteBuffer.wrap(content, readPos, readCount - space));
             }
             synchronized (content) {
                 readPos = (readPos + readCount) % content.length;

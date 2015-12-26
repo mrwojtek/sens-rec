@@ -25,12 +25,12 @@ import android.util.Log;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.ByteChannel;
+import java.nio.channels.DatagramChannel;
+import java.nio.channels.SocketChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -59,10 +59,16 @@ public class SocketOutput {
 
     public void setOnSocketListener(OnSocketListener onSocketListener) {
         this.onSocketListener = onSocketListener;
+
+        if (outputThread != null) {
+            outputThread.notifyListener();
+        } else {
+            notifyStop();
+        }
     }
 
     public Output.Record newRecord() {
-        return new SocketRecord(writeLock, writeStream);
+        return new StepReadWriteRecord(writeLock, writeStream);
     }
 
     public void start() {
@@ -76,33 +82,24 @@ public class SocketOutput {
         int protocol = recorder.getOutputProtocol(output.isBinary());
 
         // Try to reuse previous output of applicable
-        if (outputThread != null &&
-                ((protocol == SensorsRecorder.PROTOCOL_TCP
-                        && outputThread instanceof TcpOutputThread) ||
-                        (protocol == SensorsRecorder.PROTOCOL_UDP
-                                && outputThread instanceof UdpOutputThread)) &&
-                host.equals(outputThread.getHost()) &&
-                port == outputThread.getPort() &&
+        if (outputThread != null && protocol == outputThread.getProtocol() &&
+                port == outputThread.getPort() && host.equals(outputThread.getHost()) &&
                 outputThread.restart()) {
             return;
         }
 
         if (outputThread != null) {
-            outputThread.stop();
+            outputThread.stop(true);
             outputThread.join();
             outputThread = null;
         }
 
-        if (protocol == SensorsRecorder.PROTOCOL_TCP) {
-            outputThread = new TcpOutputThread(host, port);
-        } else if (protocol == SensorsRecorder.PROTOCOL_UDP) {
-            outputThread = new UdpOutputThread(host, port);
-        }
+        outputThread = new ChannelOutputThread(host, port, protocol);
     }
 
     public void stop() {
         if (outputThread != null) {
-            outputThread.stop();
+            outputThread.stop(false);
         }
     }
 
@@ -150,8 +147,8 @@ public class SocketOutput {
 
         protected Thread thread;
 
-        private boolean connected;
-        private boolean stopping;
+        protected boolean connected;
+        protected boolean stopping;
 
         public OutputThread(String host, int port, String threadName) {
             this.host = host;
@@ -159,6 +156,13 @@ public class SocketOutput {
             thread = new Thread(this, threadName);
             thread.start();
         }
+
+        protected abstract int getProtocol();
+
+        protected abstract boolean connect();
+        protected abstract void disconnect();
+        protected abstract void write();
+        protected abstract void stopSocket(boolean force);
 
         public String getHost() {
             return host;
@@ -168,18 +172,12 @@ public class SocketOutput {
             return port;
         }
 
-        protected abstract int getProtocol();
-
-        protected abstract boolean connect();
-        protected abstract void disconnect();
-        protected abstract void write();
-
-        public void stop() {
+        public void stop(boolean force) {
             synchronized (writeStream) {
                 if (thread != null) {
                     stopping = true;
                     writeStream.notify();
-                    thread.interrupt();
+                    stopSocket(force);
                 }
             }
         }
@@ -254,13 +252,17 @@ public class SocketOutput {
 
                 if (doConnect) {
                     if (connect()) {
+                        Log.i(TAG, "Network connected");
+
                         // Reset wait time
-                        Log.i(TAG, "Socket output connected");
                         connectWaitTime = FIRST_TIMEOUT;
                     } else {
-                        // Increase connection retry time
-                        Log.e(TAG, "Socket output connect failed, retry in " + connectWaitTime +
-                                "ms");
+                        if (!stopping) {
+                            Log.e(TAG, "Network connect failed, retry in " +
+                                    connectWaitTime + "ms");
+                        }
+
+                        // Calculate new connect time and increase connection retry time
                         connectTime = SystemClock.elapsedRealtime() + connectWaitTime;
                         connectWaitTime = Math.min(connectWaitTime << 1, MAXIMUM_TIMEOUT);
                     }
@@ -272,34 +274,33 @@ public class SocketOutput {
             }
         }
 
-        protected boolean isConnected() {
-            synchronized (writeStream) {
-                return connected;
-            }
-        }
-
         protected void setConnected(boolean connected) {
             synchronized (writeStream) {
                 this.connected = connected;
             }
         }
 
+        public void notifyListener() {
+            // TODO: Update activity state
+        }
+
     }
 
-    private class TcpOutputThread extends OutputThread {
+    private class ChannelOutputThread extends OutputThread {
 
         private static final String THREAD_NAME = "TcpOutput";
 
-        private Socket socket;
-        private DataOutputStream dataStream;
+        private ByteChannel socket;
+        private int protocol;
 
-        public TcpOutputThread(String host, int port) {
+        public ChannelOutputThread(String host, int port, int protocol) {
             super(host, port, THREAD_NAME);
+            this.protocol = protocol;
         }
 
         @Override
         public int getProtocol() {
-            return SensorsRecorder.PROTOCOL_TCP;
+            return protocol;
         }
 
         public void onException(IOException ex) {
@@ -310,33 +311,28 @@ public class SocketOutput {
                 }
             } catch (IOException cex) {
                 Log.e(TAG, "Error closing socket for write exception: " + cex.getMessage());
+            } finally {
+                socket = null;
+                setConnected(false);
             }
-            setConnected(false);
         }
 
         protected boolean connect() {
             notifyConnecting();
             try {
-                socket = new Socket(host, port);
-                dataStream = new DataOutputStream(socket.getOutputStream());
+                if ((protocol == SensorsRecorder.PROTOCOL_UDP && connectUdp()) ||
+                        (protocol == SensorsRecorder.PROTOCOL_TCP && connectTcp())) {
+                    writeLock.lock();
+                    try {
+                        recorder.recordStart(newDirectRecord());
+                    } finally {
+                        writeLock.unlock();
+                    }
 
-                writeLock.lock();
-                try {
-                    recorder.recordStart(newDirectRecord());
-                } finally {
-                    dataStream.flush();
-                    writeLock.unlock();
+                    setConnected(true);
+                    notifyConnected();
+                    return true;
                 }
-
-                setConnected(true);
-                notifyConnected();
-                return true;
-            } catch (SocketException ex) {
-                Log.e(TAG, "Connect SocketException: " + ex.getMessage());
-                onException(ex);
-            } catch (UnknownHostException ex) {
-                Log.e(TAG, "Connect UnknownHostException: " + ex.getMessage());
-                onException(ex);
             } catch (IOException ex) {
                 Log.e(TAG, "Connect IOException: " + ex.getMessage());
                 onException(ex);
@@ -345,103 +341,34 @@ public class SocketOutput {
             return false;
         }
 
-        protected void disconnect() {
-            try {
-                writeLock.lock();
-                try {
-                    recorder.recordStop(newDirectRecord());
-                } finally {
-                    dataStream.flush();
-                    writeLock.unlock();
-                }
-
-                socket.shutdownOutput();
-            } catch (IOException ex) {
-                Log.e(TAG, "Disconnect IOException: " + ex.getMessage());
-            } finally {
-                try {
-                    socket.close();
-                } catch (IOException cex) {
-                    Log.e(TAG, "Error closing socket for disconnect: " + cex.getMessage());
+        private boolean connectTcp() throws IOException {
+            SocketChannel socket;
+            synchronized (writeStream) {
+                if (!stopping) {
+                    this.socket = socket = SocketChannel.open();
+                } else {
+                    return false;
                 }
             }
 
-            setConnected(false);
+            socket.connect(new InetSocketAddress(host, port));
+            return true;
         }
 
-        protected void write() {
-            try {
-                writeStream.writeTo(socket.getOutputStream(), MAX_PACKET_SIZE);
-            } catch (IOException ex) {
-                Log.e(TAG, "Error writing stream [" + ex.getClass().getName() + "]: " +
-                        ex.getMessage());
-                onException(ex);
-            }
-        }
-
-        private Output.Record newDirectRecord() {
-            return output.formatRecord(new Output.DataOutputStreamRecord(writeLock) {
-
-                @Override
-                protected DataOutputStream getWriter() {
-                    return dataStream;
+        private boolean connectUdp() throws IOException {
+            DatagramChannel socket;
+            synchronized (writeStream) {
+                if (!stopping) {
+                    this.socket = socket = DatagramChannel.open();
+                } else {
+                    return false;
                 }
-
-                @Override
-                protected void onException(IOException ex) {
-                    super.onException(ex);
-                    TcpOutputThread.this.onException(ex);
-                }
-            });
-        }
-    }
-
-    private class UdpOutputThread extends OutputThread implements Runnable {
-
-        private static final String THREAD_NAME = "UdpOutput";
-
-        private DatagramSocket socket;
-        private DatagramPacket packet;
-
-        public UdpOutputThread(String host, int port) {
-            super(host, port, THREAD_NAME);
-        }
-
-        @Override
-        protected int getProtocol() {
-            return SensorsRecorder.PROTOCOL_UDP;
-        }
-
-        @Override
-        protected boolean connect() {
-            notifyConnecting();
-            try {
-                socket = new DatagramSocket();
-                socket.connect(InetAddress.getByName(host), port);
-                packet = new DatagramPacket(new byte[0], 0);
-
-                writeLock.lock();
-                try {
-                    recorder.recordStart(newDirectRecord());
-                } finally {
-                    writeLock.unlock();
-                }
-
-                setConnected(true);
-                notifyConnected();
-                return true;
-            } catch (SocketException ex) {
-                Log.e(TAG, "Error creating datagram socket: " + ex.getMessage());
-            } catch (UnknownHostException ex) {
-                Log.e(TAG, "Error creating datagram socket: " + ex.getMessage());
-            } catch (IOException ex) {
-                Log.e(TAG, "Error creating datagram socket: " + ex.getMessage());
             }
 
-            return false;
+            socket.connect(new InetSocketAddress(host, port));
+            return true;
         }
 
-        @Override
         protected void disconnect() {
             writeLock.lock();
             try {
@@ -450,17 +377,21 @@ public class SocketOutput {
                 writeLock.unlock();
             }
 
-            if (socket != null) {
-                socket.disconnect();
-                socket.close();
+            try {
+                if (socket != null) {
+                    socket.close();
+                }
+            } catch (IOException cex) {
+                Log.e(TAG, "Error closing socket for disconnect: " + cex.getMessage());
+            } finally {
+                socket = null;
+                setConnected(false);
             }
-            setConnected(false);
         }
 
-        @Override
         protected void write() {
             try {
-                writeStream.writeTo(socket, packet, MAX_PACKET_SIZE);
+                writeStream.writeTo(socket, MAX_PACKET_SIZE);
             } catch (IOException ex) {
                 Log.e(TAG, "Error writing stream [" + ex.getClass().getName() + "]: " +
                         ex.getMessage());
@@ -468,56 +399,34 @@ public class SocketOutput {
             }
         }
 
-        public void onException(IOException ex) {
-            notifyError(0);
-            if (socket != null) {
-                socket.close();
+        @Override
+        protected void stopSocket(boolean force) {
+            if (socket != null && (force || !connected)) {
+                try {
+                    socket.close();
+                } catch (IOException ex) {
+                    Log.e(TAG, "Error stopping socket: " + ex.getMessage());
+                }
             }
-            setConnected(false);
         }
 
         private Output.Record newDirectRecord() {
-            return output.formatRecord(new Output.DataOutputStreamRecord(writeLock) {
-
-                private ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
-                private DataOutputStream dataStream = new DataOutputStream(byteArray);
-
+            return output.formatRecord(new ByteChannelRecord(writeLock, socket) {
                 @Override
-                protected DataOutputStream getWriter() {
-                    return dataStream;
-                }
-
-                @Override
-                public void save() {
-                    super.save();
-                    try {
-                        if (socket != null) {
-                            packet.setData(byteArray.toByteArray());
-                            socket.send(packet);
-                        }
-                    } catch (IOException ex) {
-                        Log.e(TAG, "Error writing direct stream [" + ex.getClass().getName() + "]: "
-                                + ex.getMessage());
-                        UdpOutputThread.this.onException(ex);
-                    }
-                }
-
-                @Override
-                protected void onException(IOException ex) {
-                    super.onException(ex);
-                    UdpOutputThread.this.onException(ex);
+                protected void onChannelException(IOException ex) {
+                    ChannelOutputThread.this.onException(ex);
                 }
             });
         }
 
     }
 
-    private class SocketRecord extends Output.DataOutputStreamRecord {
+    private class StepReadWriteRecord extends Output.DataOutputStreamRecord {
 
         private final StepReadWriteStream writeStream;
         private final DataOutputStream dataStream;
 
-        public SocketRecord(Lock writeLock, StepReadWriteStream writeStream) {
+        public StepReadWriteRecord(Lock writeLock, StepReadWriteStream writeStream) {
             super(writeLock);
             this.writeStream = writeStream;
             this.dataStream = new DataOutputStream(writeStream);
@@ -543,6 +452,41 @@ public class SocketOutput {
             }
             super.save();
         }
+    }
+
+    private abstract class ByteChannelRecord extends Output.DataOutputStreamRecord {
+
+        private WritableByteChannel channel;
+        private ByteArrayOutputStream byteArray;
+        private DataOutputStream dataStream;
+
+        public ByteChannelRecord(Lock writeLock, WritableByteChannel channel) {
+            super(writeLock);
+            this.channel = channel;
+            byteArray = new ByteArrayOutputStream();
+            dataStream = new DataOutputStream(byteArray);
+        }
+
+        @Override
+        protected DataOutputStream getWriter() {
+            return dataStream;
+        }
+
+        @Override
+        public void save() {
+            super.save();
+
+            try {
+                dataStream.flush();
+                channel.write(ByteBuffer.wrap(byteArray.toByteArray()));
+            } catch (IOException ex) {
+                Log.e(TAG, "Error writing byte channel[" + ex.getClass().getName() + "]: "
+                        + ex.getMessage());
+                onChannelException(ex);
+            }
+        }
+
+        protected abstract void onChannelException(IOException ex);
     }
 
 }

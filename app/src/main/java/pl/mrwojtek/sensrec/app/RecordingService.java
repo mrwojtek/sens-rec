@@ -214,7 +214,7 @@ public class RecordingService extends Service implements SensorsRecorder.OnRecor
     }
 
     private void updateNotification(long duration) {
-        Log.i(TAG, "updateNotification " + duration);
+        Log.d(TAG, "notification update " + duration);
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (recorder.isActive()) {

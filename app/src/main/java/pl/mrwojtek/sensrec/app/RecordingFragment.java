@@ -177,7 +177,7 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
     }
 
     protected boolean updateRecordingClock(long duration) {
-        Log.i(TAG, "update " + duration);
+        Log.d(TAG, "fragment update " + duration);
         duration /= SECOND;
         long seconds = duration % MINUTE;
         duration /= MINUTE;
