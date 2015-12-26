@@ -31,7 +31,7 @@ public class LocationRecorder implements Recorder, LocationListener {
 
     public static final String PREF_KEY = SensorsRecorder.PREF_SENSOR_PREFIX + "location";
 
-    protected FrequencyMeasure measure = new FrequencyMeasure();
+    protected FrequencyMeasure measure = new FrequencyMeasure(5500, 10500, 100);
     protected SensorsRecorder sensorsRecorder;
     protected boolean started;
 

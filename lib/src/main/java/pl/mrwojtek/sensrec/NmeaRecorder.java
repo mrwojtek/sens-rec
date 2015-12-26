@@ -28,7 +28,7 @@ public class NmeaRecorder implements Recorder, GpsStatus.NmeaListener {
 
     public static final String PREF_KEY = SensorsRecorder.PREF_SENSOR_PREFIX + "nmea";
 
-    protected FrequencyMeasure measure = new FrequencyMeasure(1000, 5000, 100);
+    protected FrequencyMeasure measure = new FrequencyMeasure(5500, 10500, 100);
     protected SensorsRecorder sensorsRecorder;
     protected boolean started;
 

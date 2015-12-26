@@ -12,7 +12,7 @@
     <string name="measure_missing">Missing</string>
     <string name="measure_quiet">Quiet</string>
     <string name="measure_ambiguous">Ambiguous</string>
-    <string name="measure_frequency" formatted="false">%.2g Hz</string>
+    <string name="measure_frequency" formatted="false">%.3g Hz</string>
 
     <!-- Recording -->
     <string name="record_clock">%1$02d:%2$02d:%3$02d</string>
