@@ -38,7 +38,7 @@ public class MaterialUtils {
 
     private static Typeface robotoMedium;
 
-    protected static Typeface getRobotoMedium(Context context) {
+    public static Typeface getRobotoMedium(Context context) {
         if (robotoMedium == null) {
             robotoMedium = Typeface.createFromAsset(context.getAssets(), "fonts/Roboto-Medium.ttf");
         }
@@ -104,11 +104,8 @@ public class MaterialUtils {
      */
     public static int calculateWidth(EditText editText, String[] texts) {
         float maximumWidth = 0.0f;
-        for (int i = 0; i < texts.length; ++i) {
-            float textWidth = editText.getPaint().measureText(texts[i]);
-            if (textWidth > maximumWidth) {
-                maximumWidth = textWidth;
-            }
+        for (String text : texts) {
+            maximumWidth = Math.max(maximumWidth, editText.getPaint().measureText(text));
         }
         return editText.getCompoundPaddingLeft() + editText.getCompoundPaddingRight() +
                 (int) Math.round(Math.ceil(maximumWidth));

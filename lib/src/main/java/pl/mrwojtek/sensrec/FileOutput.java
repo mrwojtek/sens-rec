@@ -41,17 +41,22 @@ public class FileOutput {
     public static final int ERROR_MEDIA_NOT_MOUNTED = 1;
     public static final int ERROR_DIRECTORY_MISSING = 2;
     public static final int ERROR_OPENING_FILE = 3;
-    public static final int ERROR_ALREADY_STARTED = 4;
+    public static final int ERROR_WRITE_ERROR = 4;
 
     private static final String TAG = "SensRec";
 
     private RecorderOutput output;
     private SensorsRecorder recorder;
     private OnFileListener onFileListener;
+
+    private boolean started;
     private FileOutputStream stream;
     private DataOutputStream writer;
-    private boolean started;
-    private Lock writeLock = new ReentrantLock();
+    private int written;
+    private final Lock writeLock = new ReentrantLock();
+
+    private String lastFileName;
+    private Integer lastError;
 
     public FileOutput(RecorderOutput output, SensorsRecorder recorder) {
         this.output = output;
@@ -60,13 +65,49 @@ public class FileOutput {
 
     public void setOnFileListener(OnFileListener onFileListener) {
         this.onFileListener = onFileListener;
+        notifyListener();
     }
 
-    public Record newRecord() {
-        return new Record();
+    public boolean isStarted() {
+        return started;
     }
 
-    public void start(String fileName) {
+    public int getBytesWritten() {
+        writeLock.lock();
+        try {
+            return written;
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
+    public Output.Record newRecord() {
+        return new Output.DataOutputStreamRecord(writeLock) {
+
+            @Override
+            protected DataOutputStream getWriter() {
+                return writer;
+            }
+
+            @Override
+            protected void onException(IOException ex) {
+                stop(true);
+                notifyError(ERROR_WRITE_ERROR);
+            }
+
+            @Override
+            protected void onWritten(int bytes) {
+                written += bytes;
+            }
+        };
+    }
+
+    public void start() {
+        // Do not start saving if disabled or recording is not active
+        if (!recorder.isSaving() || !recorder.isActive()) {
+            return;
+        }
+
         if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
             Log.e(TAG, "External files directory is not mounted");
             notifyError(ERROR_MEDIA_NOT_MOUNTED);
@@ -80,6 +121,7 @@ public class FileOutput {
             return;
         }
 
+        String fileName = recorder.getOutputFileName(output.isBinary());
         String currentName = nextFreeName(directory.list(), fileName);
 
         Log.i(TAG, "Logging to " + currentName);
@@ -87,23 +129,20 @@ public class FileOutput {
         writeLock.lock();
         try {
             if (started) {
-                Log.e(TAG, "Trying to start second file write");
-                notifyError(ERROR_ALREADY_STARTED);
+                Log.w(TAG, "Trying to start second file write");
                 return;
-            } else {
-                started = true;
             }
 
+            started = true;
+            written = 0;
             stream = new FileOutputStream(new File(directory, currentName), false);
             writer = new DataOutputStream(stream);
-            recorder.recordStart(output.formattedRecord(newRecord()));
+            recorder.recordStart(output.formatRecord(newRecord()));
             notifyStart(currentName);
         } catch (FileNotFoundException ex) {
             Log.e(TAG, "Error opening file " + currentName + ": " + ex.getMessage());
-            stop(false);
-            if (onFileListener != null) {
-                onFileListener.onError(ERROR_OPENING_FILE);
-            }
+            stop(true);
+            notifyError(ERROR_OPENING_FILE);
         } finally {
             writeLock.unlock();
         }
@@ -125,7 +164,7 @@ public class FileOutput {
     }
 
     public void stop() {
-        stop(true);
+        stop(false);
     }
 
     private void stop(boolean quiet) {
@@ -133,12 +172,11 @@ public class FileOutput {
         try {
             if (!started) {
                 return;
-            } else {
-                started = false;
             }
 
+            started = false;
             if (writer != null) {
-                recorder.recordStop(output.formattedRecord(newRecord()));
+                recorder.recordStop(output.formatRecord(newRecord()));
                 try {
                     writer.close();
                 } catch (IOException ex) {
@@ -166,112 +204,43 @@ public class FileOutput {
         }
     }
 
-    private void notifyError(int errorId) {
+    private void notifyListener() {
+        if (lastFileName != null) {
+            notifyStart(lastFileName);
+        } else if (lastError != null) {
+            notifyError(lastError);
+        } else {
+            notifyStop();
+        }
+    }
+
+    private void notifyError(int error) {
+        lastFileName = null;
+        lastError = error;
         if (onFileListener != null) {
-            onFileListener.onError(errorId);
+            onFileListener.onError(error);
         }
     }
 
     private void notifyStart(String fileName) {
+        lastFileName = fileName;
+        lastError = null;
         if (onFileListener != null) {
             onFileListener.onStart(fileName);
         }
     }
 
     private void notifyStop() {
+        lastFileName = null;
+        lastError = null;
         if (onFileListener != null) {
             onFileListener.onStop();
         }
     }
 
     public interface OnFileListener {
-        void onError(int errorId);
+        void onError(int error);
         void onStart(String fileName);
         void onStop();
     }
-
-    private class Record implements Output.Record {
-
-        @Override
-        public Output.Record start(short typeId, short deviceId) {
-            writeLock.lock();
-            return this;
-        }
-
-        @Override
-        public void save() {
-            writeLock.unlock();
-        }
-
-        @Override
-        public Output.Record write(short value) {
-            try {
-                if (writer != null) {
-                    writer.writeShort(value);
-                }
-            } catch (IOException ex) {
-                Log.e(TAG, "Error writing short: " + ex.getMessage());
-                stop(false);
-                writeLock.unlock();
-            }
-            return this;
-        }
-
-        @Override
-        public Output.Record write(int value) {
-            try {
-                if (writer != null) {
-                    writer.writeInt(value);
-                }
-            } catch (IOException ex) {
-                Log.e(TAG, "Error writing int: " + ex.getMessage());
-                stop(false);
-                writeLock.unlock();
-            }
-            return this;
-        }
-
-        @Override
-        public Output.Record write(long value) {
-            try {
-                if (writer != null) {
-                    writer.writeLong(value);
-                }
-            } catch (IOException ex) {
-                Log.e(TAG, "Error writing long: " + ex.getMessage());
-                stop(false);
-                writeLock.unlock();
-            }
-            return this;
-        }
-
-        @Override
-        public Output.Record write(float value) {
-            try {
-                if (writer != null) {
-                    writer.writeFloat(value);
-                }
-            } catch (IOException ex) {
-                Log.e(TAG, "Error writing float: " + ex.getMessage());
-                stop(false);
-                writeLock.unlock();
-            }
-            return this;
-        }
-
-        @Override
-        public Output.Record write(String value) {
-            try {
-                if (writer != null) {
-                    writer.writeBytes(value);
-                }
-            } catch (IOException ex) {
-                Log.e(TAG, "Error writing String: " + ex.getMessage());
-                stop(false);
-                writeLock.unlock();
-            }
-            return this;
-        }
-    }
-
 }

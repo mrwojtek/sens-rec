@@ -48,8 +48,11 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     public static final String PREF_SAMPLING_PERIOD = "pref_sampling_period";
     public static final String PREF_SENSOR_PREFIX = "sensor_";
 
+    public static final int PROTOCOL_TCP = 0;
+    public static final int PROTOCOL_UDP = 1;
+
     public static final int DEFAULT_PORT = 44335;
-    public static final int DEFAULT_PROTOCOL = 0;
+    public static final int DEFAULT_PROTOCOL = PROTOCOL_TCP;
     public static final String DEFAULT_HOST = "";
     public static final boolean DEFAULT_NETWORK_SAVE = false;
     public static final boolean DEFAULT_FILE_SAVE = true;
@@ -147,7 +150,21 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (PREF_FILE_SAVE.equals(key)) {
+            if (isSaving()) {
+                output.getFileOutput().start();
+            } else {
+                output.getFileOutput().stop();
+            }
             notifyOutput();
+        } else if (PREF_NETWORK_SAVE.equals(key)
+                || PREF_NETWORK_PROTOCOL.equals(key)
+                || PREF_NETWORK_HOST.equals(key)
+                || PREF_NETWORK_PORT.equals(key)) {
+            if (isStreaming()) {
+                output.getSocketOutput().start();
+            } else {
+                output.getSocketOutput().stop();
+            }
         } else if (isRecording() && key != null && key.startsWith(PREF_SENSOR_PREFIX)) {
             for (Recorder recorder : recorders) {
                 if (isEnabled(recorder)) {
@@ -216,14 +233,6 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         }
     }
 
-    public boolean isSaving() {
-        return prefs.getBoolean(PREF_FILE_SAVE, DEFAULT_FILE_SAVE);
-    }
-
-    public boolean isStreaming() {
-        return false;
-    }
-
     public boolean isActive() {
         return active;
     }
@@ -275,12 +284,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     }
 
     protected void startOutput() {
-        boolean binary = prefs.getBoolean(PREF_SAVE_BINARY, DEFAULT_SAVE_BINARY);
-        if (binary) {
-            output.start(true, BINARY_FILE_NAME);
-        } else {
-            output.start(false, TEXT_FILE_NAME);
-        }
+        output.start(prefs.getBoolean(PREF_SAVE_BINARY, DEFAULT_SAVE_BINARY));
     }
 
     protected void stopOutput() {
@@ -323,6 +327,35 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
                 .write(time)
                 .write(wallTime)
                 .save();
+    }
+
+
+    public boolean isSaving() {
+        return prefs.getBoolean(PREF_FILE_SAVE, DEFAULT_FILE_SAVE);
+    }
+
+    public String getOutputFileName(boolean binary) {
+        if (binary) {
+            return BINARY_FILE_NAME;
+        } else {
+            return TEXT_FILE_NAME;
+        }
+    }
+
+    public boolean isStreaming() {
+        return prefs.getBoolean(PREF_NETWORK_SAVE, DEFAULT_NETWORK_SAVE);
+    }
+
+    public String getOutputHost(boolean binary) {
+        return prefs.getString(PREF_NETWORK_HOST, DEFAULT_HOST);
+    }
+
+    public int getOutputProtocol(boolean binary) {
+        return prefs.getInt(PREF_NETWORK_PROTOCOL, DEFAULT_PROTOCOL);
+    }
+
+    public int getOutputPort(boolean binary) {
+        return prefs.getInt(PREF_NETWORK_PORT, DEFAULT_PORT);
     }
 
     public String getTextSeparator() {

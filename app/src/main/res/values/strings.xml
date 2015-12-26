@@ -22,6 +22,11 @@
     <string name="record_restart">Re-start</string>
     <string name="record_stop">Stop</string>
     <string name="record_pause">Pause</string>
+    <string name="record_file_error">Error %$1d</string>
+    <string name="record_network_text">%1$s port %2$d on %3$s</string>
+    <string name="record_network_error">Error %1$d</string>
+    <string name="record_network_connecting">Connecting</string>
+    <string name="record_network_connected">Connected</string>
 
     <!-- Notification content texts -->
     <string name="output_saving_streaming">Saving and streaming</string>

@@ -3,7 +3,8 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true" >
 
     <pl.mrwojtek.sensrec.app.util.TintableImageView
         android:id="@+id/recording_clock_image"
@@ -46,8 +47,7 @@
         android:layout_marginEnd="@dimen/content_padding_right"
         android:layout_marginRight="@dimen/content_padding_right"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:text="50MB" />
+        android:layout_alignParentRight="true" />
 
     <TextView
         style="@style/TextAppearance.AppCompat.Body1"
@@ -62,8 +62,7 @@
         android:layout_toLeftOf="@id/file_status_text"
         android:paddingBottom="16dp"
         android:singleLine="true"
-        android:ellipsize="end"
-        android:text="sensrec_1_20151110.bin" />
+        android:ellipsize="end" />
 
     <TextView
         style="@style/TextAppearance.AppCompat.Caption"

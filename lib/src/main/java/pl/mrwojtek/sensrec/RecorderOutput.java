@@ -34,14 +34,18 @@ public class RecorderOutput extends Output {
     protected SocketOutput socketOutput;
     protected boolean binary;
 
+    // Recording objects cache
+    private final List<CachedRecord> records = new LinkedList<>();
+
     public RecorderOutput(SensorsRecorder sensorsRecorder) {
         this.sensorsRecorder = sensorsRecorder;
         this.fileOutput = new FileOutput(this, sensorsRecorder);
-        this.socketOutput = new SocketOutput();
+        this.socketOutput = new SocketOutput(this, sensorsRecorder);
     }
 
-    // Recording objects cache
-    private final List<Record> records = new LinkedList<>();
+    public boolean isBinary() {
+        return binary;
+    }
 
     public FileOutput getFileOutput() {
         return fileOutput;
@@ -51,9 +55,10 @@ public class RecorderOutput extends Output {
         return socketOutput;
     }
 
-    public void start(boolean binary, String fileName) {
+    public void start(boolean binary) {
         this.binary = binary;
-        fileOutput.start(fileName);
+        fileOutput.start();
+        socketOutput.start();
     }
 
     @Override
@@ -66,7 +71,7 @@ public class RecorderOutput extends Output {
         }
 
         if (record == null) {
-            record = formattedRecord(new Record());
+            record = new CachedRecord(formatRecord(new Record()));
         }
 
         record.start(typeId, deviceId);
@@ -76,9 +81,13 @@ public class RecorderOutput extends Output {
 
     public void stop() {
         fileOutput.stop();
+        socketOutput.stop();
+        synchronized (records) {
+            records.clear();
+        }
     }
 
-    protected Output.Record formattedRecord(Output.Record record) {
+    protected Output.Record formatRecord(Output.Record record) {
         if (binary) {
             return record;
         } else {
@@ -107,9 +116,6 @@ public class RecorderOutput extends Output {
         public void save() {
             fileRecord.save();
             socketRecord.save();
-            synchronized (records) {
-                records.add(this);
-            }
         }
 
         @Override
@@ -168,7 +174,9 @@ public class RecorderOutput extends Output {
         @Override
         public void save() {
             builder.append(sensorsRecorder.getTextNewLine());
+            record.start((short) 0, (short) 0);
             record.write(builder.toString());
+            record.save();
         }
 
         @Override
@@ -206,6 +214,21 @@ public class RecorderOutput extends Output {
             return this;
         }
 
+    }
+
+    private class CachedRecord extends Output.RecordWrapper {
+
+        public CachedRecord(Output.Record record) {
+            super(record);
+        }
+
+        @Override
+        public void save() {
+            super.save();
+            synchronized (records) {
+                records.add(this);
+            }
+        }
     }
 
 }

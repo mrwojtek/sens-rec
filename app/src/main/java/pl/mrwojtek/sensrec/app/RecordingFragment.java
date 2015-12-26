@@ -35,9 +35,12 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import pl.mrwojtek.sensrec.FileOutput;
 import pl.mrwojtek.sensrec.FrequencyMeasure;
 import pl.mrwojtek.sensrec.Recorder;
 import pl.mrwojtek.sensrec.SensorsRecorder;
+import pl.mrwojtek.sensrec.SocketOutput;
+import pl.mrwojtek.sensrec.app.util.MaterialUtils;
 import pl.mrwojtek.sensrec.app.util.TintableImageView;
 
 /**
@@ -60,6 +63,15 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
     protected TintableImageView recordingClockImage;
     protected TextView recordingClockText;
     protected boolean recordingClockRed;
+
+    protected TextView fileCaption;
+    protected TextView fileText;
+    protected TextView fileStatusText;
+
+    protected TextView networkCaption;
+    protected TextView networkText;
+    protected TextView networkStatusText;
+
     protected List<RecordingView> recordings = new ArrayList<>();
 
     @Override
@@ -81,6 +93,16 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
         recordingClockImage = (TintableImageView) view.findViewById(R.id.recording_clock_image);
         recordingClockImage.setTintMode(PorterDuff.Mode.SRC_IN);
 
+        fileCaption = (TextView) view.findViewById(R.id.file_caption);
+        fileText = (TextView) view.findViewById(R.id.file_text);
+        fileStatusText = (TextView) view.findViewById(R.id.file_status_text);
+        fileStatusText.setTypeface(MaterialUtils.getRobotoMedium(activity));
+
+        networkCaption = (TextView) view.findViewById(R.id.network_caption);
+        networkText = (TextView) view.findViewById(R.id.network_text);
+        networkStatusText = (TextView) view.findViewById(R.id.network_status_text);
+        networkStatusText.setTypeface(MaterialUtils.getRobotoMedium(activity));
+
         for (Recorder recorder : activity.getRecorder().getAll()) {
             RecordingView recordingView = new RecordingView();
             sensorsLayout.addView(recordingView.bind(recorder, inflater, sensorsLayout));
@@ -94,6 +116,7 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
                 long delay = (DOT_TICK - (duration % DOT_TICK)) % DOT_TICK;
                 uiHandler.postDelayed(recordingRunnable,
                         (delay < MINIMUM_DELAY ? DOT_TICK : 0) + delay + 1);
+                updateFileStatus();
                 boolean active = updateRecordingClock(duration);
                 for (RecordingView recordingView : recordings) {
                     active = recordingView.updateValueText() || active;
@@ -111,10 +134,14 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
     public void onStart() {
         super.onStart();
         activity.getRecorder().addOnRecordingListener(this, true);
+        activity.getRecorder().getOutput().getFileOutput().setOnFileListener(onFileListener);
+        activity.getRecorder().getOutput().getSocketOutput().setOnSocketListener(onSocketListener);
     }
 
     @Override
     public void onStop() {
+        activity.getRecorder().getOutput().getSocketOutput().setOnSocketListener(null);
+        activity.getRecorder().getOutput().getFileOutput().setOnFileListener(null);
         activity.getRecorder().removeOnRecordingListener(this);
         uiHandler.removeCallbacks(recordingRunnable);
         super.onStop();
@@ -177,6 +204,145 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
 
         return activity.getRecorder().isActive() && !activity.getRecorder().isPaused();
     }
+
+    protected void updateFileStatus() {
+        FileOutput fileOutput = activity.getRecorder().getOutput().getFileOutput();
+        if (fileOutput.isStarted()) {
+            fileStatusText.setText(formatBytesWritten(fileOutput.getBytesWritten()));
+            fileStatusText.setVisibility(View.VISIBLE);
+        } else {
+            fileStatusText.setVisibility(View.GONE);
+        }
+    }
+
+    protected String formatBytesWritten(int written) {
+        final String[] formats = new String[]{"%.0fB", "%.0fkB", "%.1fMB", "%.2fGB", "%.3fTB",
+                "%.3fPB", "%.3fEB" };
+        int remainder = 0;
+        int i = 0;
+        for (; i + 1 < formats.length && written > 999; ++i) {
+            remainder = written % 1000;
+            written /= 1000;
+        }
+        return String.format(formats[i], written + remainder / 1000.0f);
+    }
+
+    protected FileOutput.OnFileListener onFileListener = new FileOutput.OnFileListener() {
+        @Override
+        public void onError(int error) {
+            fileText.setText(getString(R.string.record_file_error, error));
+            setVisibility(View.VISIBLE);
+            updateFileStatus();
+        }
+
+        @Override
+        public void onStart(String fileName) {
+            fileText.setText(fileName);
+            setVisibility(View.VISIBLE);
+            updateFileStatus();
+        }
+
+        @Override
+        public void onStop() {
+            setVisibility(View.GONE);
+        }
+
+        private void setVisibility(int visibility) {
+            fileCaption.setVisibility(visibility);
+            fileText.setVisibility(visibility);
+            fileStatusText.setVisibility(visibility);
+        }
+
+    };
+
+    protected SocketOutput.OnSocketListener onSocketListener = new SocketOutput.OnSocketListener() {
+
+        private Runnable socketRunnable;
+
+        private final Runnable uiRunnable = new Runnable() {
+            @Override
+            public void run() {
+                Runnable runnable;
+                synchronized (uiRunnable) {
+                    runnable = socketRunnable;
+                    socketRunnable = null;
+                }
+                runnable.run();
+            }
+        };
+
+        @Override
+        public void onError(final int protocol, final String host, final int port,
+                            final int errorId) {
+            schedule(new Runnable() {
+                @Override
+                public void run() {
+                    networkStatusText.setText(getString(R.string.record_network_error, errorId));
+                    setText(protocol, host, port);
+                    setVisibility(View.VISIBLE);
+                }
+            });
+        }
+
+        @Override
+        public void onConnecting(final int protocol, final String host, final int port) {
+            schedule(new Runnable() {
+                @Override
+                public void run() {
+                    networkStatusText.setText(R.string.record_network_connecting);
+                    setText(protocol, host, port);
+                    setVisibility(View.VISIBLE);
+                }
+            });
+        }
+
+        @Override
+        public void onConnected(final int protocol, final String host, final int port) {
+            schedule(new Runnable() {
+                @Override
+                public void run() {
+                    networkStatusText.setText(R.string.record_network_connected);
+                    setText(protocol, host, port);
+                    setVisibility(View.VISIBLE);
+                }
+            });
+        }
+
+        @Override
+        public void onStop() {
+            schedule(new Runnable() {
+                @Override
+                public void run() {
+                    setVisibility(View.GONE);
+                }
+            });
+        }
+
+        private void setText(int protocol, String host, int port) {
+            String[] protocols = getResources().getStringArray(R.array.network_protocol_values);
+            networkText.setText(getString(R.string.record_network_text, protocols[protocol], port,
+                    host));
+        }
+
+        private void setVisibility(int visibility) {
+            networkCaption.setVisibility(visibility);
+            networkText.setVisibility(visibility);
+            networkStatusText.setVisibility(visibility);
+        }
+
+        private void schedule(Runnable runnable) {
+            synchronized (uiRunnable) {
+                if (socketRunnable != null) {
+                    socketRunnable = runnable;
+                    return;
+                }
+            }
+
+            socketRunnable = runnable;
+            uiHandler.post(uiRunnable);
+        }
+
+    };
 
     protected class RecordingView {
 
