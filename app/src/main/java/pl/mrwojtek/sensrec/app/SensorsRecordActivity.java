@@ -56,6 +56,7 @@ public class SensorsRecordActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     //.add(R.id.container, new RecordingFragment()).commit();
+                    .add(new Records(), Records.FRAGMENT_TAG)
                     .add(R.id.container, new RecordsFragment(), RecordsFragment.FRAGMENT_TAG)
                     .commit();
         }

@@ -20,8 +20,8 @@
 package pl.mrwojtek.sensrec.app;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
@@ -41,10 +41,14 @@ import com.example.android.supportv7.widget.decorator.DividerItemDecoration;
 /**
  * Presents a list of the recorded files.
  */
-public class RecordsFragment extends Fragment implements DeleteConfirmationDialog.OnDeleteListener {
+public class RecordsFragment extends Fragment implements DeleteConfirmationDialog.OnDeleteListener,
+        Records.OnItemListener {
+
+    private static final String TAG = "SensRec";
 
     public static final String FRAGMENT_TAG = "RecordsFragment";
 
+    private Records records;
     private RecordsAdapter adapter;
     private RecyclerView recycler;
     private TextView fallbackText;
@@ -69,14 +73,17 @@ public class RecordsFragment extends Fragment implements DeleteConfirmationDialo
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             int itemId = item.getItemId();
             if (itemId == R.id.action_select_all) {
-                adapter.activateAll(true);
+                records.activateAll(true);
                 return true;
             } else if (itemId == R.id.action_share) {
-                adapter.shareActivated();
+                if (!records.shareActivated()) {
+                    Snackbar.make(recycler, R.string.records_share_failed, Snackbar.LENGTH_LONG)
+                            .show();
+                }
                 return true;
             } else if (itemId == R.id.action_delete) {
                 getActivity().getSupportFragmentManager().beginTransaction()
-                        .add(DeleteConfirmationDialog.newInstance(adapter.getActivatedCount(),
+                        .add(DeleteConfirmationDialog.newInstance(records.getActivatedCount(),
                                         FRAGMENT_TAG),
                                 DeleteConfirmationDialog.DIALOG_TAG)
                         .commit();
@@ -87,7 +94,7 @@ public class RecordsFragment extends Fragment implements DeleteConfirmationDialo
 
         @Override
         public void onDestroyActionMode(ActionMode mode) {
-            adapter.activateAll(false);
+            records.activateAll(false);
             actionMode = null;
         }
     };
@@ -96,9 +103,8 @@ public class RecordsFragment extends Fragment implements DeleteConfirmationDialo
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Handler uiHandler = new Handler(getActivity().getMainLooper());
-        adapter = new RecordsAdapter(this, uiHandler);
-        adapter.onRestoreInstanceState(savedInstanceState);
+        records = (Records) getActivity().getSupportFragmentManager()
+                .findFragmentByTag(Records.FRAGMENT_TAG);
 
         DefaultItemAnimator itemAnimator = new DefaultItemAnimator();
         itemAnimator.setSupportsChangeAnimations(false);
@@ -110,31 +116,45 @@ public class RecordsFragment extends Fragment implements DeleteConfirmationDialo
                 DividerItemDecoration.VERTICAL_LIST));
         recycler.setLayoutManager(new LinearLayoutManager(getActivity()));
         recycler.setItemAnimator(itemAnimator);
-        recycler.setAdapter(adapter);
+        recycler.setAdapter(adapter = new RecordsAdapter(this, records));
         recycler.setHasFixedSize(true);
 
+        records.setOnItemListener(this);
         resolveVisibility();
         return view;
     }
 
     @Override
     public void onDestroyView() {
-        adapter.onDestroy();
+        records.setOnItemListener(null);
         super.onDestroyView();
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        adapter.onSaveInstanceState(outState);
+    public void onDataSetChanged() {
+        resolveActionMode();
+        adapter.notifyDataSetChanged();
     }
 
-    public RecyclerView getRecycler() {
-        return recycler;
+    @Override
+    public void onCountsChanged() {
+        resolveVisibility();
+    }
+
+    @Override
+    public void onItemChanged(int position) {
+        adapter.notifyItemChanged(position);
+    }
+
+    @Override
+    public void onDelete() {
+        if (!records.deleteActivated()) {
+            Snackbar.make(recycler, R.string.records_delete_failed, Snackbar.LENGTH_LONG).show();
+        }
     }
 
     public void resolveActionMode() {
-        if (adapter.getActivatedCount() != 0) {
+        if (records.getActivatedCount() != 0) {
             if (actionMode == null) {
                 AppCompatActivity activity = (AppCompatActivity) getActivity();
                 actionMode = activity.startSupportActionMode(actionModeCallback);
@@ -148,18 +168,8 @@ public class RecordsFragment extends Fragment implements DeleteConfirmationDialo
         }
     }
 
-    @Override
-    public void onDelete() {
-        adapter.deleteActivated();
-    }
-
-    private void updateTitle(ActionMode actionMode) {
-        actionMode.setTitle(getResources().getQuantityString(R.plurals.records_action_title,
-                adapter.getActivatedCount(), adapter.getActivatedCount()));
-    }
-
     public void resolveVisibility() {
-        if (adapter.getItemCount() == 0) {
+        if (records.size() == 0) {
             fallbackText.setText(R.string.records_empty);
             fallbackText.setVisibility(View.VISIBLE);
             recycler.setVisibility(View.GONE);
@@ -167,5 +177,10 @@ public class RecordsFragment extends Fragment implements DeleteConfirmationDialo
             fallbackText.setVisibility(View.GONE);
             recycler.setVisibility(View.VISIBLE);
         }
+    }
+
+    private void updateTitle(ActionMode actionMode) {
+        actionMode.setTitle(getResources().getQuantityString(R.plurals.records_action_title,
+                records.getActivatedCount(), records.getActivatedCount()));
     }
 }
