@@ -59,7 +59,6 @@ public class Records extends Fragment {
     private List<RecordEntry> records = new ArrayList<>();
     private Map<String, RecordEntry> recordByName = new HashMap<>();
 
-    private List<OnDataSetChangedListener> onDataSetChangedListeners = new ArrayList<>();
     private OnItemListener onItemListener;
 
     @Override
@@ -111,25 +110,11 @@ public class Records extends Fragment {
         outState.putStringArrayList(PARAM_ACTIVATED, activated);
     }
 
-    public void addOnDataSetChangedListener(OnDataSetChangedListener listener) {
-        onDataSetChangedListeners.add(listener);
-        listener.onCountsChanged();
-        listener.onDataSetChanged();
-    }
-
-    public void removeOnDataSetChangedListener(OnDataSetChangedListener listener) {
-        onDataSetChangedListeners.remove(listener);
-    }
-
-    public void setOnItemListener(OnItemListener onItemListener) {
-        if (this.onItemListener != null) {
-            removeOnDataSetChangedListener(this.onItemListener);
-        }
-
-        this.onItemListener = onItemListener;
-
-        if (onItemListener != null) {
-            addOnDataSetChangedListener(onItemListener);
+    public void setOnItemListener(OnItemListener listener) {
+        onItemListener = listener;
+        if (listener != null) {
+            listener.onCountsChanged();
+            listener.onDataSetChanged();
         }
     }
 
@@ -258,14 +243,14 @@ public class Records extends Fragment {
     }
 
     void notifyCountsChanged() {
-        for (OnDataSetChangedListener listener : onDataSetChangedListeners) {
-            listener.onCountsChanged();
+        if (onItemListener != null) {
+            onItemListener.onCountsChanged();
         }
     }
 
     void notifyDataSetChanged() {
-        for (OnDataSetChangedListener listener : onDataSetChangedListeners) {
-            listener.onDataSetChanged();
+        if (onItemListener != null) {
+            onItemListener.onDataSetChanged();
         }
     }
 
