@@ -122,7 +122,8 @@ public class FileOutput {
         }
 
         String fileName = recorder.getOutputFileName(output.isBinary());
-        String currentName = nextFreeName(directory.list(), fileName);
+        int fileIndex = nextFreeIndex(directory.list(), fileName);
+        String currentName = String.format(fileName, fileIndex);
 
         Log.i(TAG, "Logging to " + currentName);
 
@@ -145,20 +146,23 @@ public class FileOutput {
             notifyError(ERROR_OPENING_FILE);
         } finally {
             writeLock.unlock();
+            recorder.setLastFileIndex(fileIndex);
         }
     }
 
-    private String nextFreeName(String[] files, String fileName) {
+    private int nextFreeIndex(String[] files, String fileName) {
         // List all recorded files
         Set<String> set = new HashSet<>(Arrays.asList(files));
 
         // Find the new file name
-        int index = 1;
+        int index = recorder.getLastFileIndex() + 1;
         String name;
         while (true) {
-            name = String.format(fileName, index++);
+            name = String.format(fileName, index);
             if (!set.contains(name)) {
-                return name;
+                return index;
+            } else {
+                ++index;
             }
         }
     }

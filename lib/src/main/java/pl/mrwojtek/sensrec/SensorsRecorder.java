@@ -47,6 +47,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     public static final String PREF_SAVE_BINARY = "pref_save_binary";
     public static final String PREF_SAMPLING_PERIOD = "pref_sampling_period";
     public static final String PREF_SENSOR_PREFIX = "sensor_";
+    public static final String PREF_LAST_FILE_INDEX = "file_index";
 
     public static final int PROTOCOL_TCP = 0;
     public static final int PROTOCOL_UDP = 1;
@@ -74,6 +75,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     private static final String PREFIX_UNKNOWN = "unknown";
     private static final String BINARY_FILE_NAME = "Recording %d.bin";
     private static final String TEXT_FILE_NAME = "Recording %d.txt";
+    private static final String MAGIC_WORD = "SensorsRecord";
 
     private static final String TAG = "SensRec";
 
@@ -314,9 +316,10 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         long time = SystemClock.elapsedRealtime();
         long wallTime = System.currentTimeMillis();
         record.start(TYPE_START, (short) 0)
+                .write(MAGIC_WORD, 0, MAGIC_WORD.length())
+                .write(LOG_VERSION)
                 .write(time)
                 .write(wallTime)
-                .write(LOG_VERSION)
                 .save();
     }
 
@@ -324,8 +327,11 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         long time = SystemClock.elapsedRealtime();
         long wallTime = System.currentTimeMillis();
         record.start(TYPE_END, (short) 0)
+                .write(MAGIC_WORD, 0, MAGIC_WORD.length())
+                .write(LOG_VERSION)
                 .write(time)
                 .write(wallTime)
+                .write(-1.0)
                 .save();
     }
 
@@ -356,6 +362,14 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
 
     public int getOutputPort(boolean binary) {
         return prefs.getInt(PREF_NETWORK_PORT, DEFAULT_PORT);
+    }
+
+    public int getLastFileIndex() {
+        return prefs.getInt(PREF_LAST_FILE_INDEX, 1);
+    }
+
+    public void setLastFileIndex(int fileIndex) {
+        prefs.edit().putInt(PREF_LAST_FILE_INDEX, fileIndex).apply();
     }
 
     public String getTextSeparator() {
