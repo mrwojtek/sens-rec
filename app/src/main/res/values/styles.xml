@@ -6,6 +6,7 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="actionBarStyle">@style/AppTheme.ActionBar.Solid</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -58,6 +59,16 @@
         <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
         <item name="android:textColor">?attr/editTextColor</item>
         <item name="android:paddingLeft">4dp</item>
+    </style>
+
+    <style name="ListFallback" parent="@style/TextAppearance.AppCompat.Headline" >
+        <item name="android:textColor">?android:attr/textColorSecondary</item>
+    </style>
+
+    <style name="ListItemFirst" parent="@style/TextAppearance.AppCompat.Subhead" />
+
+    <style name="ListItemSecond" parent="@style/TextAppearance.AppCompat.Body1" >
+        <item name="android:textColor">?android:attr/textColorSecondary</item>
     </style>
 
 </resources>

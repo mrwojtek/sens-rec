@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/records_item_background" >
+
+    <TextView
+        style="@style/ListItemFirst"
+        android:id="@+id/name_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_toLeftOf="@+id/date_text"
+        android:paddingLeft="16dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="4dp"
+        android:paddingRight="8dp"
+        android:singleLine="true" />
+
+    <TextView
+        style="@style/ListItemSecond"
+        android:id="@+id/details_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/name_text"
+        android:layout_toLeftOf="@+id/time_text"
+        android:paddingLeft="16dp"
+        android:paddingBottom="20dp"
+        android:paddingRight="8dp"
+        android:singleLine="true" />
+
+    <TextView
+        style="@style/ListItemSecond"
+        android:id="@+id/date_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:paddingRight="16dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="4dp" />
+
+    <TextView
+        style="@style/ListItemSecond"
+        android:id="@+id/time_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/date_text"
+        android:paddingRight="16dp"
+        android:paddingBottom="20dp" />
+
+</RelativeLayout>

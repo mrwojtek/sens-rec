@@ -13,6 +13,7 @@
     <color name="colorTextSecondary">#8A000000</color>
     <color name="colorTextHint">#61000000</color>
     <color name="colorDivider">#1E000000</color>
+    <color name="colorBackgroundActivated">#10000000</color>
 
     <color name="colorTextPrimaryInverse">#FFFFFFFF</color>
     <color name="colorTextSecondaryInverse">#B2FFFFFF</color>

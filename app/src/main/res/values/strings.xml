@@ -5,6 +5,9 @@
     <string name="app_name">Sensors Record</string>
     <string name="settings_name">Recording Settings</string>
     <string name="action_settings">Settings</string>
+    <string name="action_select_all">Select All</string>
+    <string name="action_share">Share</string>
+    <string name="action_delete">Delete</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_ok">OK</string>
 
@@ -28,6 +31,23 @@
     <string name="record_network_connecting">Connecting</string>
     <string name="record_network_connected">Connected</string>
 
+    <!-- Records list -->
+    <string name="records_empty">No records yet</string>
+    <string name="records_duration">%1$02d:%2$02d:%3$02d</string>
+    <string name="records_size_distance_time">%1$s for %2$s in %3$s</string>
+    <string name="records_size_time">%1$s in %2$s</string>
+    <string name="records_size">%1$s</string>
+    <string name="records_share_failed">No application to share those records with</string>
+    <string name="records_delete_failed">Not all records could be deleted</string>
+    <plurals name="records_action_title">
+        <item quantity="one">%1$d record</item>
+        <item quantity="other">%1$d records</item>
+    </plurals>
+    <plurals name="records_delete_confirm">
+        <item quantity="one">Delete %1$d record?</item>
+        <item quantity="other">Delete %1$d records?</item>
+    </plurals>
+
     <!-- Notification content texts -->
     <string name="output_saving_streaming">Saving and streaming</string>
     <string name="output_saving">Saving</string>
@@ -48,7 +68,7 @@
     <string name="pref_sensors_restart">Re-start logging to apply</string>
 
     <!-- Preference dialgos -->
-    <string name="sampling_period_title">Set sampling period</string>
+    <string name="sampling_period_title">Sampling period</string>
     <string name="sampling_period_constants_text">Constant</string>
     <string name="sampling_period_milliseconds_text">Milliseconds</string>
     <array name="sampling_period_default_values">

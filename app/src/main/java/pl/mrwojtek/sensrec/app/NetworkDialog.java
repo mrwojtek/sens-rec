@@ -27,12 +27,12 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.SwitchCompat;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import pl.mrwojtek.sensrec.SensorsRecorder;
@@ -47,7 +47,7 @@ public class NetworkDialog extends DialogFragment implements
     public static final String DIALOG_TAG = "NetworkDialog";
     public static final String MAXIMUM_PORT = "65535";
 
-    private Switch networkSwitch;
+    private SwitchCompat networkSwitch;
     private EditText hostEdit;
     private Spinner protocolSpinner;
     private EditText portEdit;
@@ -60,7 +60,7 @@ public class NetworkDialog extends DialogFragment implements
         View view = inflater.inflate(R.layout.network_dialog, null);
 
         initializePortEdit(view);
-        networkSwitch = (Switch) view.findViewById(R.id.network_switch);
+        networkSwitch = (SwitchCompat) view.findViewById(R.id.network_switch);
         protocolSpinner = (Spinner) view.findViewById(R.id.protocol_spinner);
         hostEdit = (EditText) view.findViewById(R.id.host_edit);
         portEdit = (EditText) view.findViewById(R.id.port_edit);
@@ -73,7 +73,7 @@ public class NetworkDialog extends DialogFragment implements
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DialogTheme);
-        builder.setTitle(R.string.network_title);
+        //builder.setTitle(R.string.network_title);
         builder.setView(view);
         builder.setNegativeButton(R.string.action_cancel, null);
         builder.setPositiveButton(R.string.action_ok, this);

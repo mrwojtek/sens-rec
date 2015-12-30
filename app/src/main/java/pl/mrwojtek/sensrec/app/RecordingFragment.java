@@ -208,23 +208,11 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
     protected void updateFileStatus() {
         FileOutput fileOutput = activity.getRecorder().getOutput().getFileOutput();
         if (fileOutput.isStarted()) {
-            fileStatusText.setText(formatBytesWritten(fileOutput.getBytesWritten()));
+            fileStatusText.setText(MaterialUtils.formatBytesWritten(fileOutput.getBytesWritten()));
             fileStatusText.setVisibility(View.VISIBLE);
         } else {
             fileStatusText.setVisibility(View.GONE);
         }
-    }
-
-    protected String formatBytesWritten(int written) {
-        final String[] formats = new String[]{"%.0fB", "%.0fkB", "%.1fMB", "%.2fGB", "%.3fTB",
-                "%.3fPB", "%.3fEB" };
-        int remainder = 0;
-        int i = 0;
-        for (; i + 1 < formats.length && written > 999; ++i) {
-            remainder = written % 1000;
-            written /= 1000;
-        }
-        return String.format(formats[i], written + remainder / 1000.0f);
     }
 
     protected FileOutput.OnFileListener onFileListener = new FileOutput.OnFileListener() {

@@ -111,4 +111,16 @@ public class MaterialUtils {
                 (int) Math.round(Math.ceil(maximumWidth));
     }
 
+    public static String formatBytesWritten(long written) {
+        final String[] formats = new String[]{"%.0fB", "%.0fkB", "%.1fMB", "%.2fGB", "%.3fTB",
+                "%.3fPB", "%.3fEB" };
+        long remainder = 0;
+        int i = 0;
+        for (; i + 1 < formats.length && written > 999; ++i) {
+            remainder = written % 1000;
+            written /= 1000;
+        }
+        return String.format(formats[i], written + remainder / 1000.0f);
+    }
+
 }
