@@ -219,6 +219,7 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordsAdapter.RecordVi
 
             if (changed) {
                 updateRecordsOrder(newRecords);
+                fragment.resolveVisibility();
             }
         }
 

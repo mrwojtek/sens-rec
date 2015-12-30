@@ -158,7 +158,7 @@ public class RecordsFragment extends Fragment implements DeleteConfirmationDialo
                 adapter.getActivatedCount(), adapter.getActivatedCount()));
     }
 
-    private void resolveVisibility() {
+    public void resolveVisibility() {
         if (adapter.getItemCount() == 0) {
             fallbackText.setText(R.string.records_empty);
             fallbackText.setVisibility(View.VISIBLE);
