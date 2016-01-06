@@ -1,13 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <color name="material_grey_100">#F5F5F5</color>
+    <color name="material_grey_200">#EEEEEE</color>
+    <color name="material_grey_300">#E0E0E0</color>
+    <color name="material_grey_400">#BDBDBD</color>
+    <color name="material_grey_500">#9E9E9E</color>
+    <color name="material_grey_600">#757575</color>
+
     <color name="material_blue_grey_500">#607D8B</color>
     <color name="material_blue_grey_700">#455A64</color>
     <color name="material_red_A200">#FF5252</color>
 
-    <color name="colorPrimary">@color/material_blue_grey_500</color>
-    <color name="colorPrimaryDark">@color/material_blue_grey_700</color>
-    <color name="colorAccent">@color/material_red_A200</color>
+    <color name="material_red_500">#F44336</color>
+    <color name="material_red_700">#D32F2F</color>
+    <color name="material_lime_100">#F0F4C3</color>
+    <color name="material_lime_200">#E6EE9C</color>
+    <color name="material_lime_500">#CDDC39</color>
+    <color name="material_lime_700">#AFB42B</color>
+    <color name="material_light_green_500">#8BC34A</color>
+
+    <color name="colorPrimary">@color/material_red_500</color>
+    <color name="colorPrimaryDark">@color/material_red_700</color>
+    <color name="colorAccent">@color/material_lime_500</color>
 
     <color name="colorTextPrimary">#DE000000</color>
     <color name="colorTextSecondary">#8A000000</color>

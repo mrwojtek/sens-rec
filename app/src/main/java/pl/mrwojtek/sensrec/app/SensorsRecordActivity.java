@@ -19,30 +19,37 @@
 
 package pl.mrwojtek.sensrec.app;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import pl.mrwojtek.sensrec.SensorsRecorder;
 
 /**
  * Main activity for this application.
  */
-public class SensorsRecordActivity extends AppCompatActivity {
+public class SensorsRecordActivity extends AppCompatActivity implements
+        SensorsRecorder.OnRecordingListener {
 
     private static final String TAG = "SensRec";
 
-    protected FloatingActionButton stopFloat;
-    protected FloatingActionButton recordFloat;
-    protected ColorStateList recordFloatColor;
-    protected ColorStateList recordFloatBackgroundColor;
+    protected TextView stopText;
+    protected TextView pauseText;
+    protected TextView startText;
+    protected TextView restartText;
+    protected View stopPauseLayout;
+
     protected SensorsRecorder recorder;
+
+    protected boolean active;
+    protected boolean paused;
 
     public SensorsRecorder getRecorder() {
         return recorder;
@@ -63,32 +70,52 @@ public class SensorsRecordActivity extends AppCompatActivity {
 
         recorder = RecordingService.getRecorder(this);
 
-        stopFloat = (FloatingActionButton) findViewById(R.id.stop_float);
-        stopFloat.setOnClickListener(new View.OnClickListener() {
+        stopPauseLayout = findViewById(R.id.stop_pause_layout);
+
+        stopText = (TextView) findViewById(R.id.stop_button);
+        stopText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 stopRecording();
             }
         });
 
-        recordFloatColor = ContextCompat.getColorStateList(this, R.color.record_float);
-        recordFloatBackgroundColor =
-                ContextCompat.getColorStateList(this, R.color.record_float_background);
-        recordFloat = (FloatingActionButton) findViewById(R.id.record_float);
-        recordFloat.setOnClickListener(new View.OnClickListener() {
+        pauseText = (TextView) findViewById(R.id.pause_button);
+        pauseText.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                if (recorder.isActive()) {
-                    if (recorder.isPaused()) {
-                        startRecording();
-                    } else {
-                        pauseRecording();
-                    }
-                } else {
-                    startRecording();
-                }
+            public void onClick(View v) {
+                pauseRecording();
             }
         });
+
+        restartText = (TextView) findViewById(R.id.restart_button);
+        restartText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startRecording();
+            }
+        });
+
+        startText = (TextView) findViewById(R.id.start_button);
+        startText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startRecording();
+            }
+        });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        recorder.addOnRecordingListener(this, false);
+        updateRecordingState(false);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        recorder.removeOnRecordingListener(this);
     }
 
     @Override
@@ -107,27 +134,70 @@ public class SensorsRecordActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    protected void updateRecordingState() {
-        int[] state;
+    @Override
+    public void onStarted() {
+        updateRecordingState(true);
+    }
 
-        if (recorder.isActive()) {
-            stopFloat.setVisibility(View.VISIBLE);
-            if (recorder.isPaused()) {
-                state = new int[]{R.attr.recording_paused};
-            } else {
-                state = new int[]{R.attr.recording_active};
-            }
-        } else {
-            stopFloat.setVisibility(View.GONE);
-            state = new int[]{};
+    @Override
+    public void onStopped() {
+        updateRecordingState(true);
+    }
+
+    @Override
+    public void onPaused() {
+        updateRecordingState(true);
+    }
+
+    @Override
+    public void onOutput(boolean saving, boolean streaming) {
+        // Ignore
+    }
+
+    protected void updateRecordingState(boolean animate) {
+        if (recorder.isActive() && active) {
+            updatePausedState(animate);
+        } else if (recorder.isActive() && !active) {
+            active = true;
+            animateShow(stopPauseLayout, animate);
+            animateHide(startText, animate);
+            updatePausedState(false);
+        } else if (!recorder.isActive() && active) {
+            active = false;
+            animateHide(stopPauseLayout, animate);
+            animateShow(startText, animate);
         }
+    }
 
-        recordFloat.setImageState(state, false);
-        recordFloat.setBackgroundTintList(ColorStateList.valueOf(
-                recordFloatBackgroundColor.getColorForState(state,
-                recordFloatBackgroundColor.getDefaultColor())));
-        recordFloat.setColorFilter(recordFloatColor.getColorForState(state,
-                recordFloatColor.getDefaultColor()));
+    protected void updatePausedState(boolean animate) {
+        if (recorder.isPaused() && !paused) {
+            paused = true;
+            animateShow(restartText, animate);
+            animateHide(pauseText, animate);
+        } else if (!recorder.isPaused() && paused){
+            paused = false;
+            animateHide(restartText, animate);
+            animateShow(pauseText, animate);
+        }
+    }
+
+    private void animateShow(View view, boolean animate) {
+        view.setVisibility(View.VISIBLE);
+        view.setAlpha(1.0f);
+    }
+
+    private void animateHide(final View view, boolean animate) {
+        if (animate) {
+            view.bringToFront();
+            view.animate().alpha(0.0f).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    view.setVisibility(View.GONE);
+                }
+            });
+        } else {
+            view.setVisibility(View.GONE);
+        }
     }
 
     protected void startRecording() {
@@ -143,5 +213,4 @@ public class SensorsRecordActivity extends AppCompatActivity {
     protected void pauseRecording() {
         recorder.pause();
     }
-
 }

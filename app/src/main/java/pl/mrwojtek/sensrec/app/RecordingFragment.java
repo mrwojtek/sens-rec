@@ -74,6 +74,9 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
 
     protected List<RecordingView> recordings = new ArrayList<>();
 
+    protected boolean active;
+    protected boolean paused;
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -150,20 +153,17 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
     @Override
     public void onStarted() {
         recordingClockRed = true;
-        activity.updateRecordingState();
         uiHandler.removeCallbacks(recordingRunnable);
         recordingRunnable.run();
     }
 
     @Override
     public void onStopped() {
-        activity.updateRecordingState();
         updateRecordingClock();
     }
 
     @Override
     public void onPaused() {
-        activity.updateRecordingState();
         updateRecordingClock();
     }
 

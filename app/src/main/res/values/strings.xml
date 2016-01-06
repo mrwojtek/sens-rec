@@ -22,6 +22,7 @@
     <string name="record_notification_clock">Recording %1$02d:%2$02d:%3$02d</string>
     <string name="record_file_caption">File</string>
     <string name="record_network_caption">Network</string>
+    <string name="record_start">Start Recording</string>
     <string name="record_restart">Re-start</string>
     <string name="record_stop">Stop</string>
     <string name="record_pause">Pause</string>
