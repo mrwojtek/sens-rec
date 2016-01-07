@@ -19,6 +19,7 @@
 
 package pl.mrwojtek.sensrec.app;
 
+import android.animation.LayoutTransition;
 import android.content.Context;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
@@ -50,6 +51,8 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
 
     private static final String TAG = "SensRec";
 
+    private static final String ARG_FREEZE_ON_STOP = "freezeOnStop";
+
     private static final int DOT_TICK = 500;
     private static final int MINIMUM_DELAY = 300;
     private static final int SECOND = 1000;
@@ -59,6 +62,10 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
     protected SensorsRecordActivity activity;
     protected Handler uiHandler;
     protected Runnable recordingRunnable;
+
+    protected boolean freezeOnStop;
+
+    protected ViewGroup fragmentLayout;
 
     protected TintableImageView recordingClockImage;
     protected TextView recordingClockText;
@@ -74,8 +81,13 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
 
     protected List<RecordingView> recordings = new ArrayList<>();
 
-    protected boolean active;
-    protected boolean paused;
+    public static final RecordingFragment newInstance(boolean freezeOnStop) {
+        Bundle args = new Bundle();
+        args.putBoolean(ARG_FREEZE_ON_STOP, freezeOnStop);
+        RecordingFragment fragment = new RecordingFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
 
     @Override
     public void onAttach(Context context) {
@@ -91,6 +103,10 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
         ViewGroup sensorsLayout = (ViewGroup) view.findViewById(R.id.recordings_layout);
 
         uiHandler = new Handler(activity.getMainLooper());
+
+        freezeOnStop = getArguments().getBoolean(ARG_FREEZE_ON_STOP);
+
+        fragmentLayout = (ViewGroup) view.findViewById(R.id.fragment_layout);
 
         recordingClockText = (TextView) view.findViewById(R.id.recording_clock_text);
         recordingClockImage = (TintableImageView) view.findViewById(R.id.recording_clock_image);
@@ -216,6 +232,7 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
     }
 
     protected FileOutput.OnFileListener onFileListener = new FileOutput.OnFileListener() {
+
         @Override
         public void onError(int error) {
             fileText.setText(getString(R.string.record_file_error, error));
@@ -232,7 +249,9 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
 
         @Override
         public void onStop() {
-            setVisibility(View.GONE);
+            if (!freezeOnStop || activity.getRecorder().isActive()) {
+                setVisibility(View.GONE);
+            }
         }
 
         private void setVisibility(int visibility) {
@@ -240,7 +259,6 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
             fileText.setVisibility(visibility);
             fileStatusText.setVisibility(visibility);
         }
-
     };
 
     protected SocketOutput.OnSocketListener onSocketListener = new SocketOutput.OnSocketListener() {
@@ -301,7 +319,9 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
             schedule(new Runnable() {
                 @Override
                 public void run() {
-                    setVisibility(View.GONE);
+                    if (!freezeOnStop || activity.getRecorder().isActive()) {
+                        setVisibility(View.GONE);
+                    }
                 }
             });
         }
@@ -329,7 +349,6 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
             socketRunnable = runnable;
             uiHandler.post(uiRunnable);
         }
-
     };
 
     protected class RecordingView {

@@ -55,7 +55,7 @@
         <item name="android:paddingBottom">0dp</item>
     </style>
 
-    <style name="SpinnerDropDownItem" parent="@style/Widget.AppCompat.DropDownItem.Spinner">
+    <style name="SpinnerDropDownItem" parent="@style/Widget.AppCompat.DropDownItem.Spinner" >
         <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
         <item name="android:textColor">?attr/editTextColor</item>
         <item name="android:paddingLeft">4dp</item>
@@ -66,7 +66,8 @@
         <item name="android:padding">16dp</item>
         <item name="android:textAllCaps">true</item>
         <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
-        <item name="android:textColor">?android:attr/textColorPrimary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?android:attr/textColorSecondary</item>
         <!-- <item name="android:textColor">@color/material_lime_700</item> -->
     </style>
 

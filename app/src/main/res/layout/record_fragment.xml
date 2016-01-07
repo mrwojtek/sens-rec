@@ -1,115 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/fragment_layout"
+    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:animateLayoutChanges="true" >
+    android:layout_height="match_parent" >
 
-    <pl.mrwojtek.sensrec.app.util.TintableImageView
-        android:id="@+id/recording_clock_image"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/content_padding_left"
-        android:layout_marginStart="@dimen/content_padding_left"
-        android:layout_alignTop="@+id/recording_clock_text"
-        android:layout_alignBottom="@+id/recording_clock_text"
-        android:src="@drawable/ic_fiber_manual_record_white_24dp"
-        app:tint="@color/record_clock_dot" />
-
-    <TextView
-        style="@style/TextAppearance.AppCompat.Headline"
-        android:id="@+id/recording_clock_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/recording_clock_image"
-        android:paddingLeft="8dp"
-        android:paddingTop="@dimen/content_padding_top"
-        android:paddingBottom="@dimen/content_padding_top" />
-
-    <TextView
-        style="@style/TextAppearance.AppCompat.Caption"
-        android:id="@+id/file_caption"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/recording_clock_text"
-        android:layout_marginLeft="@dimen/content_padding_left"
-        android:layout_marginStart="@dimen/content_padding_left"
-        android:paddingBottom="2dp"
-        android:text="@string/record_file_caption" />
-
-    <TextView
-        style="@style/TextAppearance.AppCompat.Body2"
-        android:id="@+id/file_status_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/file_caption"
-        android:layout_marginEnd="@dimen/content_padding_right"
-        android:layout_marginRight="@dimen/content_padding_right"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true" />
-
-    <TextView
-        style="@style/TextAppearance.AppCompat.Body1"
-        android:id="@+id/file_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/file_caption"
-        android:layout_marginLeft="@dimen/content_padding_left"
-        android:layout_marginStart="@dimen/content_padding_left"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:layout_toLeftOf="@id/file_status_text"
-        android:paddingBottom="16dp"
-        android:singleLine="true"
-        android:ellipsize="end" />
-
-    <TextView
-        style="@style/TextAppearance.AppCompat.Caption"
-        android:id="@+id/network_caption"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/file_text"
-        android:layout_marginLeft="@dimen/content_padding_left"
-        android:layout_marginStart="@dimen/content_padding_left"
-        android:paddingBottom="2dp"
-        android:text="@string/record_network_caption" />
-
-    <TextView
-        style="@style/TextAppearance.AppCompat.Body2"
-        android:id="@+id/network_status_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/network_caption"
-        android:layout_marginEnd="@dimen/content_padding_right"
-        android:layout_marginRight="@dimen/content_padding_right"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:text="Connected" />
-
-    <TextView
-        style="@style/TextAppearance.AppCompat.Body1"
-        android:id="@+id/network_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/network_caption"
-        android:layout_marginLeft="@dimen/content_padding_left"
-        android:layout_marginStart="@dimen/content_padding_left"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:layout_toLeftOf="@id/network_status_text"
-        android:paddingBottom="16dp"
-        android:singleLine="true"
-        android:ellipsize="end"
-        android:text="TCP port 4324 on somelonglonglonglonghostname.com" />
-
-    <View
-        android:id="@+id/recording_divider"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@id/network_text"
-        android:minHeight="1px"
-        android:background="@color/colorDivider" />
+        android:layout_height="wrap_content"
+        android:background="@color/material_grey_200" >
+
+        <pl.mrwojtek.sensrec.app.util.TintableImageView
+            android:id="@+id/recording_clock_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/content_padding_left"
+            android:layout_marginStart="@dimen/content_padding_left"
+            android:layout_alignTop="@+id/recording_clock_text"
+            android:layout_alignBottom="@+id/recording_clock_text"
+            android:src="@drawable/ic_fiber_manual_record_white_24dp"
+            app:tint="@color/record_clock_dot" />
+
+        <TextView
+            style="@style/TextAppearance.AppCompat.Headline"
+            android:id="@+id/recording_clock_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/recording_clock_image"
+            android:paddingLeft="8dp"
+            android:paddingTop="@dimen/content_padding_top"
+            android:paddingBottom="@dimen/content_padding_top" />
+
+        <TextView
+            style="@style/TextAppearance.AppCompat.Caption"
+            android:id="@+id/file_caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/recording_clock_text"
+            android:layout_marginLeft="@dimen/content_padding_left"
+            android:layout_marginStart="@dimen/content_padding_left"
+            android:paddingBottom="2dp"
+            android:text="@string/record_file_caption" />
+
+        <TextView
+            style="@style/TextAppearance.AppCompat.Body2"
+            android:id="@+id/file_status_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/file_caption"
+            android:layout_marginEnd="@dimen/content_padding_right"
+            android:layout_marginRight="@dimen/content_padding_right"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true" />
+
+        <TextView
+            style="@style/TextAppearance.AppCompat.Body1"
+            android:id="@+id/file_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/file_caption"
+            android:layout_marginLeft="@dimen/content_padding_left"
+            android:layout_marginStart="@dimen/content_padding_left"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentLeft="true"
+            android:layout_toLeftOf="@id/file_status_text"
+            android:paddingBottom="16dp"
+            android:singleLine="true"
+            android:ellipsize="end" />
+
+        <TextView
+            style="@style/TextAppearance.AppCompat.Caption"
+            android:id="@+id/network_caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/file_text"
+            android:layout_marginLeft="@dimen/content_padding_left"
+            android:layout_marginStart="@dimen/content_padding_left"
+            android:paddingBottom="2dp"
+            android:text="@string/record_network_caption" />
+
+        <TextView
+            style="@style/TextAppearance.AppCompat.Body2"
+            android:id="@+id/network_status_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/network_caption"
+            android:layout_marginEnd="@dimen/content_padding_right"
+            android:layout_marginRight="@dimen/content_padding_right"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:text="Connected" />
+
+        <TextView
+            style="@style/TextAppearance.AppCompat.Body1"
+            android:id="@+id/network_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/network_caption"
+            android:layout_marginLeft="@dimen/content_padding_left"
+            android:layout_marginStart="@dimen/content_padding_left"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentLeft="true"
+            android:layout_toLeftOf="@id/network_status_text"
+            android:paddingBottom="16dp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:text="TCP port 4324 on somelonglonglonglonghostname.com" />
+
+        <View
+            android:id="@+id/recording_divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@id/network_text"
+            android:minHeight="1px"
+            android:background="@color/colorDivider" />
+
+    </RelativeLayout>
 
     <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -128,4 +136,4 @@
 
     </android.support.v4.widget.NestedScrollView>
 
-</RelativeLayout>
+</LinearLayout>

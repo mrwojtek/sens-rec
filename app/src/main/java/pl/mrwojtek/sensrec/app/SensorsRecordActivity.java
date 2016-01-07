@@ -62,7 +62,6 @@ public class SensorsRecordActivity extends AppCompatActivity implements
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    //.add(R.id.container, new RecordingFragment()).commit();
                     .add(new Records(), Records.FRAGMENT_TAG)
                     .add(R.id.container, new RecordsFragment(), RecordsFragment.FRAGMENT_TAG)
                     .commit();
@@ -162,10 +161,16 @@ public class SensorsRecordActivity extends AppCompatActivity implements
             animateShow(stopPauseLayout, animate);
             animateHide(startText, animate);
             updatePausedState(false);
+            getSupportFragmentManager().beginTransaction()
+                    .setCustomAnimations(R.anim.slide_in_bottom, R.anim.slide_out_top)
+                    .replace(R.id.container, RecordingFragment.newInstance(true)).commit();
         } else if (!recorder.isActive() && active) {
             active = false;
             animateHide(stopPauseLayout, animate);
             animateShow(startText, animate);
+            getSupportFragmentManager().beginTransaction()
+                    .setCustomAnimations(R.anim.slide_in_bottom, R.anim.slide_out_top)
+                    .replace(R.id.container, new RecordsFragment()).commit();
         }
     }
 

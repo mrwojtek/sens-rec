@@ -125,6 +125,14 @@ public class RecordsFragment extends Fragment implements DeleteConfirmationDialo
     }
 
     @Override
+    public void onDetach() {
+        if (actionMode != null) {
+            actionMode.finish();
+        }
+        super.onDetach();
+    }
+
+    @Override
     public void onDestroyView() {
         records.setOnItemListener(null);
         super.onDestroyView();
