@@ -17,7 +17,9 @@
     <color name="material_lime_100">#F0F4C3</color>
     <color name="material_lime_200">#E6EE9C</color>
     <color name="material_lime_500">#CDDC39</color>
+    <color name="material_lime_600">#C0CA33</color>
     <color name="material_lime_700">#AFB42B</color>
+    <color name="material_lime_A700">#AEEA00</color>
     <color name="material_light_green_500">#8BC34A</color>
 
     <color name="colorPrimary">@color/material_red_500</color>

@@ -23,7 +23,8 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.PersistableBundle;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -40,9 +41,6 @@ public class SensorsRecordActivity extends AppCompatActivity implements
         SensorsRecorder.OnRecordingListener {
 
     private static final String TAG = "SensRec";
-
-    private static final String ARG_ACTIVE = "active";
-    private static final String ARG_PAUSED = "paused";
 
     protected TextView stopText;
     protected TextView pauseText;
@@ -102,30 +100,16 @@ public class SensorsRecordActivity extends AppCompatActivity implements
 
 
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(new Records(), Records.FRAGMENT_TAG)
-                    .add(R.id.container, new RecordsFragment(), RecordsFragment.FRAGMENT_TAG)
-                    .commit();
-        } else {
-            active = savedInstanceState.getBoolean(ARG_ACTIVE);
-            if (active) {
-                animateShow(stopPauseLayout, false);
-                animateHide(startText, false);
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            ft.add(new Records(), Records.FRAGMENT_TAG);
+            if (recorder.isActive()) {
+                ft.add(R.id.container, RecordingFragment.newInstance(true),
+                        RecordingFragment.FRAGMENT_TAG);
+            } else {
+                ft.add(R.id.container, new RecordsFragment(), RecordsFragment.FRAGMENT_TAG);
             }
-
-            paused = savedInstanceState.getBoolean(ARG_PAUSED);
-            if (paused) {
-                animateShow(restartText, false);
-                animateHide(pauseText, false);
-            }
+            ft.commit();
         }
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putBoolean(ARG_ACTIVE, active);
-        outState.putBoolean(ARG_PAUSED, paused);
     }
 
     @Override
@@ -178,25 +162,37 @@ public class SensorsRecordActivity extends AppCompatActivity implements
     }
 
     protected void updateRecordingState(boolean animate) {
-        if (recorder.isActive() && active) {
+        boolean recordingActive = recorder.isActive();
+        if (recordingActive && active) {
             updatePausedState(animate);
-        } else if (recorder.isActive() && !active) {
-            active = true;
-            animateShow(stopPauseLayout, animate);
-            animateHide(startText, animate);
-            updatePausedState(false);
-            Log.i(TAG, "Starting RecordingFragment");
-            getSupportFragmentManager().beginTransaction()
-                    .setCustomAnimations(R.anim.slide_in_bottom, R.anim.slide_out_top)
-                    .replace(R.id.container, RecordingFragment.newInstance(true)).commit();
-        } else if (!recorder.isActive() && active) {
-            active = false;
-            animateHide(stopPauseLayout, animate);
-            animateShow(startText, animate);
-            Log.i(TAG, "Starting RecordsFragment");
-            getSupportFragmentManager().beginTransaction()
-                    .setCustomAnimations(R.anim.slide_in_bottom, R.anim.slide_out_top)
-                    .replace(R.id.container, new RecordsFragment()).commit();
+        } else {
+            if (recordingActive && !active) {
+                active = true;
+                animateShow(stopPauseLayout, animate);
+                animateHide(startText, animate);
+                updatePausedState(false);
+            } else if (!recordingActive && active) {
+                active = false;
+                animateHide(stopPauseLayout, animate);
+                animateShow(startText, animate);
+            }
+        }
+
+        FragmentManager fm = getSupportFragmentManager();
+
+        if (recordingActive && fm.findFragmentByTag(RecordingFragment.FRAGMENT_TAG) == null) {
+            FragmentTransaction ft = fm.beginTransaction();
+            ft.setCustomAnimations(R.anim.slide_in_bottom, R.anim.slide_out_top);
+            ft.replace(R.id.container, RecordingFragment.newInstance(true),
+                    RecordingFragment.FRAGMENT_TAG);
+            ft.commit();
+        }
+
+        if (!recordingActive && fm.findFragmentByTag(RecordsFragment.FRAGMENT_TAG) == null) {
+            FragmentTransaction ft = fm.beginTransaction();
+            ft.setCustomAnimations(R.anim.slide_in_bottom, R.anim.slide_out_top);
+            ft.replace(R.id.container, new RecordsFragment(), RecordsFragment.FRAGMENT_TAG);
+            ft.commit();
         }
     }
 

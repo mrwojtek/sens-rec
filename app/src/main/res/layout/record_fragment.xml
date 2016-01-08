@@ -10,7 +10,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/material_grey_300" >
+        android:background="@color/material_grey_200" >
 
         <pl.mrwojtek.sensrec.app.util.TintableImageView
             android:id="@+id/recording_clock_image"

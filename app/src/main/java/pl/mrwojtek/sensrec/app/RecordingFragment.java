@@ -51,6 +51,8 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
 
     private static final String TAG = "SensRec";
 
+    public static final String FRAGMENT_TAG = "RecordingFragment";
+
     private static final String ARG_FREEZE_ON_STOP = "freezeOnStop";
 
     private static final int DOT_TICK = 500;
