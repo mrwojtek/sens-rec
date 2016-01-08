@@ -22,9 +22,10 @@ package pl.mrwojtek.sensrec.app;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -39,6 +40,9 @@ public class SensorsRecordActivity extends AppCompatActivity implements
         SensorsRecorder.OnRecordingListener {
 
     private static final String TAG = "SensRec";
+
+    private static final String ARG_ACTIVE = "active";
+    private static final String ARG_PAUSED = "paused";
 
     protected TextView stopText;
     protected TextView pauseText;
@@ -59,13 +63,6 @@ public class SensorsRecordActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.sensors_record_activity);
-
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(new Records(), Records.FRAGMENT_TAG)
-                    .add(R.id.container, new RecordsFragment(), RecordsFragment.FRAGMENT_TAG)
-                    .commit();
-        }
 
         recorder = RecordingService.getRecorder(this);
 
@@ -102,6 +99,33 @@ public class SensorsRecordActivity extends AppCompatActivity implements
                 startRecording();
             }
         });
+
+
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .add(new Records(), Records.FRAGMENT_TAG)
+                    .add(R.id.container, new RecordsFragment(), RecordsFragment.FRAGMENT_TAG)
+                    .commit();
+        } else {
+            active = savedInstanceState.getBoolean(ARG_ACTIVE);
+            if (active) {
+                animateShow(stopPauseLayout, false);
+                animateHide(startText, false);
+            }
+
+            paused = savedInstanceState.getBoolean(ARG_PAUSED);
+            if (paused) {
+                animateShow(restartText, false);
+                animateHide(pauseText, false);
+            }
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(ARG_ACTIVE, active);
+        outState.putBoolean(ARG_PAUSED, paused);
     }
 
     @Override
@@ -161,6 +185,7 @@ public class SensorsRecordActivity extends AppCompatActivity implements
             animateShow(stopPauseLayout, animate);
             animateHide(startText, animate);
             updatePausedState(false);
+            Log.i(TAG, "Starting RecordingFragment");
             getSupportFragmentManager().beginTransaction()
                     .setCustomAnimations(R.anim.slide_in_bottom, R.anim.slide_out_top)
                     .replace(R.id.container, RecordingFragment.newInstance(true)).commit();
@@ -168,6 +193,7 @@ public class SensorsRecordActivity extends AppCompatActivity implements
             active = false;
             animateHide(stopPauseLayout, animate);
             animateShow(startText, animate);
+            Log.i(TAG, "Starting RecordsFragment");
             getSupportFragmentManager().beginTransaction()
                     .setCustomAnimations(R.anim.slide_in_bottom, R.anim.slide_out_top)
                     .replace(R.id.container, new RecordsFragment()).commit();
