@@ -23,6 +23,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
@@ -50,6 +51,7 @@ public class SensorsRecordActivity extends AppCompatActivity implements
 
     protected SensorsRecorder recorder;
 
+    protected boolean dual;
     protected boolean active;
     protected boolean paused;
 
@@ -61,6 +63,8 @@ public class SensorsRecordActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.sensors_record_activity);
+
+        dual = getResources().getBoolean(R.bool.recording_dual_fragments);
 
         recorder = RecordingService.getRecorder(this);
 
@@ -98,16 +102,12 @@ public class SensorsRecordActivity extends AppCompatActivity implements
             }
         });
 
-
         if (savedInstanceState == null) {
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.add(new Records(), Records.FRAGMENT_TAG);
-            if (recorder.isActive()) {
-                ft.add(R.id.container, RecordingFragment.newInstance(true),
-                        RecordingFragment.FRAGMENT_TAG);
-            } else {
-                ft.add(R.id.container, new RecordsFragment(), RecordsFragment.FRAGMENT_TAG);
-            }
+            ft.add(R.id.recording_container, RecordingFragment.newInstance(true),
+                    RecordingFragment.FRAGMENT_TAG);
+            ft.add(R.id.records_container, new RecordsFragment(), RecordsFragment.FRAGMENT_TAG);
             ft.commit();
         }
     }
@@ -178,21 +178,26 @@ public class SensorsRecordActivity extends AppCompatActivity implements
             }
         }
 
-        FragmentManager fm = getSupportFragmentManager();
+        if (!dual) {
+            FragmentManager fm = getSupportFragmentManager();
+            Fragment recordingFragment = fm.findFragmentByTag(RecordingFragment.FRAGMENT_TAG);
+            Fragment recordsFragment = fm.findFragmentByTag(RecordsFragment.FRAGMENT_TAG);
 
-        if (recordingActive && fm.findFragmentByTag(RecordingFragment.FRAGMENT_TAG) == null) {
-            FragmentTransaction ft = fm.beginTransaction();
-            ft.setCustomAnimations(R.anim.slide_in_bottom, R.anim.slide_out_top);
-            ft.replace(R.id.container, RecordingFragment.newInstance(true),
-                    RecordingFragment.FRAGMENT_TAG);
-            ft.commit();
-        }
+            if (recordingActive && (!recordsFragment.isHidden() || recordingFragment.isHidden())) {
+                FragmentTransaction ft = fm.beginTransaction();
+                ft.setCustomAnimations(R.anim.slide_in_bottom, R.anim.slide_out_top);
+                ft.show(recordingFragment);
+                ft.hide(recordsFragment);
+                ft.commit();
+            }
 
-        if (!recordingActive && fm.findFragmentByTag(RecordsFragment.FRAGMENT_TAG) == null) {
-            FragmentTransaction ft = fm.beginTransaction();
-            ft.setCustomAnimations(R.anim.slide_in_bottom, R.anim.slide_out_top);
-            ft.replace(R.id.container, new RecordsFragment(), RecordsFragment.FRAGMENT_TAG);
-            ft.commit();
+            if (!recordingActive && (recordsFragment.isHidden() || !recordingFragment.isHidden())) {
+                FragmentTransaction ft = fm.beginTransaction();
+                ft.setCustomAnimations(R.anim.slide_in_bottom, R.anim.slide_out_top);
+                ft.show(recordsFragment);
+                ft.hide(recordingFragment);
+                ft.commit();
+            }
         }
     }
 

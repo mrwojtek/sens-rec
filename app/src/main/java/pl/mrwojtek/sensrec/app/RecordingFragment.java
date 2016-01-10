@@ -65,8 +65,10 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
     protected Handler uiHandler;
     protected Runnable recordingRunnable;
 
+    protected boolean dual;
     protected boolean freezeOnStop;
 
+    protected ViewGroup recordProgressLayout;
     protected ViewGroup fragmentLayout;
 
     protected TintableImageView recordingClockImage;
@@ -82,6 +84,8 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
     protected TextView networkStatusText;
 
     protected List<RecordingView> recordings = new ArrayList<>();
+    protected FileOutputListener onFileListener = new FileOutputListener();
+    protected SocketOutputListener onSocketListener = new SocketOutputListener();
 
     public static final RecordingFragment newInstance(boolean freezeOnStop) {
         Bundle args = new Bundle();
@@ -106,8 +110,10 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
 
         uiHandler = new Handler(activity.getMainLooper());
 
+        dual = getResources().getBoolean(R.bool.recording_dual_fragments);
         freezeOnStop = getArguments().getBoolean(ARG_FREEZE_ON_STOP);
 
+        recordProgressLayout = (ViewGroup) view.findViewById(R.id.record_progress_layout);
         fragmentLayout = (ViewGroup) view.findViewById(R.id.fragment_layout);
 
         recordingClockText = (TextView) view.findViewById(R.id.recording_clock_text);
@@ -154,6 +160,8 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
     @Override
     public void onStart() {
         super.onStart();
+        onFileListener.setVisibility(View.GONE);
+        onSocketListener.setVisibility(View.GONE);
         activity.getRecorder().addOnRecordingListener(this, true);
         activity.getRecorder().getOutput().getFileOutput().setOnFileListener(onFileListener);
         activity.getRecorder().getOutput().getSocketOutput().setOnSocketListener(onSocketListener);
@@ -170,6 +178,10 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
 
     @Override
     public void onStarted() {
+        if (dual) {
+            recordProgressLayout.setVisibility(View.VISIBLE);
+        }
+
         recordingClockRed = true;
         uiHandler.removeCallbacks(recordingRunnable);
         recordingRunnable.run();
@@ -177,11 +189,19 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
 
     @Override
     public void onStopped() {
+        if (dual) {
+            recordProgressLayout.setVisibility(View.GONE);
+        }
+
         updateRecordingClock();
     }
 
     @Override
     public void onPaused() {
+        if (dual) {
+            recordProgressLayout.setVisibility(View.VISIBLE);
+        }
+
         updateRecordingClock();
     }
 
@@ -233,7 +253,7 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
         }
     }
 
-    protected FileOutput.OnFileListener onFileListener = new FileOutput.OnFileListener() {
+    protected class FileOutputListener implements FileOutput.OnFileListener {
 
         @Override
         public void onError(int error) {
@@ -256,14 +276,14 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
             }
         }
 
-        private void setVisibility(int visibility) {
+        public void setVisibility(int visibility) {
             fileCaption.setVisibility(visibility);
             fileText.setVisibility(visibility);
             fileStatusText.setVisibility(visibility);
         }
     };
 
-    protected SocketOutput.OnSocketListener onSocketListener = new SocketOutput.OnSocketListener() {
+    protected class SocketOutputListener implements SocketOutput.OnSocketListener {
 
         private Runnable socketRunnable;
 
@@ -334,7 +354,7 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
                     host));
         }
 
-        private void setVisibility(int visibility) {
+        public void setVisibility(int visibility) {
             networkCaption.setVisibility(visibility);
             networkText.setVisibility(visibility);
             networkStatusText.setVisibility(visibility);

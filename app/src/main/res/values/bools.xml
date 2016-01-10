@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <bool name="recording_dual_fragments">false</bool>
+
+</resources>

@@ -5,9 +5,11 @@
     android:id="@+id/fragment_layout"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true" >
 
     <RelativeLayout
+        android:id="@+id/record_progress_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/material_grey_200" >

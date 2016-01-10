@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="pl.mrwojtek.sensrec.app.SensorsRecordActivity" >
+
+    <FrameLayout
+        android:id="@+id/records_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
+
+    <View
+        android:id="@+id/fragments_divider"
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_below="@id/network_text"
+        android:minWidth="1px"
+        android:background="@color/colorDivider" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1" >
+
+        <include
+            layout="@layout/record_control_buttons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true" />
+
+        <FrameLayout
+            android:id="@+id/recording_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@id/recording_buttons_layout" />
+
+    </RelativeLayout>
+
+</LinearLayout>

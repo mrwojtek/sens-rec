@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/recording_buttons_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" >
+
+    <LinearLayout
+        android:id="@+id/stop_pause_layout"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" >
+
+        <TextView
+            style="@style/RecordingButtonTextView"
+            android:id="@+id/stop_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/record_stop"
+            android:background="@drawable/recording_stop_button_background" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" >
+
+            <TextView
+                style="@style/RecordingButtonTextView"
+                android:id="@+id/pause_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/record_pause"
+                android:background="@drawable/recording_pause_button_background" />
+
+            <TextView
+                style="@style/RecordingButtonTextView"
+                android:id="@+id/restart_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/record_restart"
+                android:textColor="@color/colorAccent"
+                android:background="@drawable/recording_restart_button_background"
+                android:visibility="gone" />
+
+        </FrameLayout>
+
+    </LinearLayout>
+
+    <TextView
+        style="@style/RecordingButtonTextView"
+        android:id="@+id/start_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/record_start"
+        android:textColor="@color/colorAccent"
+        android:background="@drawable/recording_start_button_background" />
+
+</FrameLayout>
