@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <dimen name="fab_margin">16dp</dimen>
-    <dimen name="secondary_fab_margin">88dp</dimen>
+    <dimen name="recording_column_width">250dp</dimen>
 
     <dimen name="content_padding_left">16dp</dimen>
     <dimen name="content_padding_right">16dp</dimen>

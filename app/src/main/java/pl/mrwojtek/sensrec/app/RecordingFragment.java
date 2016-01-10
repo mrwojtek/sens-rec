@@ -27,6 +27,7 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.GridLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -106,7 +107,6 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.record_fragment, container, false);
-        ViewGroup sensorsLayout = (ViewGroup) view.findViewById(R.id.recordings_layout);
 
         uiHandler = new Handler(activity.getMainLooper());
 
@@ -130,6 +130,10 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
         networkStatusText = (TextView) view.findViewById(R.id.network_status_text);
         networkStatusText.setTypeface(MaterialUtils.getRobotoMedium(activity));
 
+        GridLayout sensorsLayout = (GridLayout) view.findViewById(R.id.recordings_layout);
+        int cw = getResources().getDimensionPixelSize(R.dimen.recording_column_width);
+        int sw = getResources().getDisplayMetrics().widthPixels;
+        sensorsLayout.setColumnCount(Math.max(1, (dual ? sw / (2 * cw) : sw / cw)));
         for (Recorder recorder : activity.getRecorder().getAll()) {
             RecordingView recordingView = new RecordingView();
             sensorsLayout.addView(recordingView.bind(recorder, inflater, sensorsLayout));
