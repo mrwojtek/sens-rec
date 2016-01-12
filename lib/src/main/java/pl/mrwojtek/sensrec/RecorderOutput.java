@@ -170,8 +170,16 @@ public class RecorderOutput extends Output {
         }
 
         @Override
+        public Output.Record start(short typeId, short deviceId) {
+            super.start(typeId, deviceId);
+            write(typeId);
+            write(deviceId);
+            return this;
+        }
+
+        @Override
         public Output.Record write(String value, int offset, int count) {
-            super.write(count);
+            write(count);
             super.write(value, offset, count);
             return this;
         }

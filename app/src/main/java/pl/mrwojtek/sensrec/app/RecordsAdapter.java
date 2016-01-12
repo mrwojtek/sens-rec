@@ -104,7 +104,15 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordsAdapter.RecordVi
             timeText.setText(DateFormat.getTimeInstance().format(date));
 
             String written = MaterialUtils.formatBytesWritten(record.getSize());
-            detailsText.setText(detailsText.getContext().getString(R.string.records_size, written));
+            if (record.getDuration() != null) {
+                String timeText = RecordingService.getTimeText(
+                        detailsText.getContext(), R.string.record_clock, record.getDuration());
+                detailsText.setText(detailsText.getContext()
+                        .getString(R.string.records_size_time, written, timeText));
+            } else {
+                detailsText.setText(detailsText.getContext()
+                        .getString(R.string.records_size, written));
+            }
 
             itemView.setActivated(record.isActivated());
         }

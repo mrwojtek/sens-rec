@@ -68,16 +68,16 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     public static final short TYPE_GPS = -6;
     public static final short TYPE_GPS_NMEA = -7;
 
-    private static final int LOG_VERSION = 1100;
+    protected static final int LOG_VERSION = 1100;
 
-    private static final String SEPARATOR = "\t";
-    private static final String NEW_LINE = "\n";
-    private static final String PREFIX_UNKNOWN = "unknown";
-    private static final String BINARY_FILE_NAME = "Recording %d.bin";
-    private static final String TEXT_FILE_NAME = "Recording %d.txt";
-    private static final String MAGIC_WORD = "SensorsRecord";
+    protected static final String SEPARATOR = "\t";
+    protected static final String NEW_LINE = "\n";
+    protected static final String PREFIX_UNKNOWN = "unknown";
+    protected static final String BINARY_FILE_NAME = "Recording %d.bin";
+    protected static final String TEXT_FILE_NAME = "Recording %d.txt";
+    protected static final String MAGIC_WORD = "SensorsRecord";
 
-    private static final String TAG = "SensRec";
+    protected static final String TAG = "SensRec";
 
     protected Context context;
     protected Handler uiHandler;
@@ -315,26 +315,25 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     public void recordStart(Output.Record record) {
         long time = SystemClock.elapsedRealtime();
         long wallTime = System.currentTimeMillis();
-        record.start(TYPE_START, (short) 0)
-                .write(MAGIC_WORD, 0, MAGIC_WORD.length())
-                .write(LOG_VERSION)
-                .write(time)
-                .write(wallTime)
+        record.start(TYPE_START, (short) 0)                 // 4B
+                .write(MAGIC_WORD, 0, MAGIC_WORD.length())  // 4B + len(MAGIC_WORD)
+                .write(LOG_VERSION)                         // 4B
+                .write(time)                                // 8B
+                .write(wallTime)                            // 8B
                 .save();
     }
 
     public void recordStop(Output.Record record) {
         long time = SystemClock.elapsedRealtime();
         long wallTime = System.currentTimeMillis();
-        record.start(TYPE_END, (short) 0)
-                .write(MAGIC_WORD, 0, MAGIC_WORD.length())
-                .write(LOG_VERSION)
-                .write(time)
-                .write(wallTime)
-                .write(-1.0)
+        record.start(TYPE_END, (short) 0)                   // 4B
+                .write(MAGIC_WORD, 0, MAGIC_WORD.length())  // 4B + len(MAGIC_WORD)
+                .write(LOG_VERSION)                         // 4B
+                .write(time)                                // 8B
+                .write(wallTime)                            // 8B
+                .write(-1.0)                                // 8B
                 .save();
     }
-
 
     public boolean isSaving() {
         return prefs.getBoolean(PREF_FILE_SAVE, DEFAULT_FILE_SAVE);

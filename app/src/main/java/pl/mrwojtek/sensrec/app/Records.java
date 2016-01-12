@@ -39,6 +39,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import pl.mrwojtek.sensrec.RecordReader;
+import pl.mrwojtek.sensrec.SensorsRecorder;
+
 /**
  * Maintains a list of records.
  */
@@ -55,6 +58,7 @@ public class Records extends Fragment {
     private Handler uiHandler;
     private int activatedCount;
     private int lastRecordId;
+    private SensorsRecorder recorder;
 
     private List<RecordEntry> records = new ArrayList<>();
     private Map<String, RecordEntry> recordByName = new HashMap<>();
@@ -75,6 +79,8 @@ public class Records extends Fragment {
         //File[] directories = ContextCompat.getExternalFilesDirs(context, null);
 
         uiHandler = new Handler(getActivity().getMainLooper());
+
+        recorder = RecordingService.getRecorder(getContext());
 
         recordsDirectory = getActivity().getExternalFilesDir(null);
         recordsObserver = new RecordsObserver(recordsDirectory.getPath());
@@ -340,6 +346,8 @@ public class Records extends Fragment {
     public class RecordEntry implements Comparable<RecordEntry> {
 
         private Date date;
+        private Long duration;
+        private Double distance;
         private File file;
         private boolean activated;
         private int id;
@@ -347,8 +355,8 @@ public class Records extends Fragment {
 
         public RecordEntry(File file) {
             this.file = file;
-            this.date = new Date(file.lastModified());
-            this.id = ++lastRecordId;
+            id = ++lastRecordId;
+            onModified();
         }
 
         public int getId() {
@@ -357,6 +365,14 @@ public class Records extends Fragment {
 
         public Date getDate() {
             return date;
+        }
+
+        public Long getDuration() {
+            return duration;
+        }
+
+        public Double getDistance() {
+            return distance;
         }
 
         public String getName() {
@@ -382,7 +398,14 @@ public class Records extends Fragment {
         }
 
         public void onModified() {
-            date = new Date(file.lastModified());
+            RecordReader reader = new RecordReader(recorder);
+            if (reader.readStartEnd(file)) {
+                //this.date = new Date(file.lastModified());
+                date = reader.getStartDate();
+                duration = reader.getDuration();
+            } else {
+                date = null;
+            }
         }
 
         @Override

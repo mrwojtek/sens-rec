@@ -78,6 +78,15 @@ public class RecordingService extends Service implements SensorsRecorder.OnRecor
         context.startService(intent);
     }
 
+    public static String getTimeText(Context context, int stringId, long duration) {
+        duration /= SECOND;
+        long seconds = duration % MINUTE;
+        duration /= MINUTE;
+        long minutes = duration % HOUR;
+        long hours = duration / HOUR;
+        return context.getString(stringId, hours, minutes, seconds);
+    }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -249,17 +258,9 @@ public class RecordingService extends Service implements SensorsRecorder.OnRecor
                         getString(R.string.record_pause), getPauseIntent());
             }
         }
-        notificationBuilder.setContentTitle(getTitleText(duration));
+        notificationBuilder.setContentTitle(
+                getTimeText(this, R.string.record_notification_clock, duration));
         return notificationBuilder.build();
-    }
-
-    private String getTitleText(long duration) {
-        duration /= SECOND;
-        long seconds = duration % MINUTE;
-        duration /= MINUTE;
-        long minutes = duration % HOUR;
-        long hours = duration / HOUR;
-        return getString(R.string.record_notification_clock, hours, minutes, seconds);
     }
 
     private String getNotificationText() {

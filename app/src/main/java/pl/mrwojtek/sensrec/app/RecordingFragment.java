@@ -19,7 +19,6 @@
 
 package pl.mrwojtek.sensrec.app;
 
-import android.animation.LayoutTransition;
 import android.content.Context;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
@@ -58,9 +57,6 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
 
     private static final int DOT_TICK = 500;
     private static final int MINIMUM_DELAY = 300;
-    private static final int SECOND = 1000;
-    private static final int MINUTE = 60;
-    private static final int HOUR = 60;
 
     protected SensorsRecordActivity activity;
     protected Handler uiHandler;
@@ -88,7 +84,7 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
     protected FileOutputListener onFileListener = new FileOutputListener();
     protected SocketOutputListener onSocketListener = new SocketOutputListener();
 
-    public static final RecordingFragment newInstance(boolean freezeOnStop) {
+    public static RecordingFragment newInstance(boolean freezeOnStop) {
         Bundle args = new Bundle();
         args.putBoolean(ARG_FREEZE_ON_STOP, freezeOnStop);
         RecordingFragment fragment = new RecordingFragment();
@@ -220,12 +216,8 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
 
     protected boolean updateRecordingClock(long duration) {
         Log.d(TAG, "fragment update " + duration);
-        duration /= SECOND;
-        long seconds = duration % MINUTE;
-        duration /= MINUTE;
-        long minutes = duration % HOUR;
-        long hours = duration / HOUR;
-        recordingClockText.setText(getString(R.string.record_clock, hours, minutes, seconds));
+        recordingClockText.setText(
+                RecordingService.getTimeText(getContext(), R.string.record_clock, duration));
 
         int[] state = null;
         if (activity.getRecorder().isActive()) {
@@ -285,7 +277,7 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
             fileText.setVisibility(visibility);
             fileStatusText.setVisibility(visibility);
         }
-    };
+    }
 
     protected class SocketOutputListener implements SocketOutput.OnSocketListener {
 
@@ -375,7 +367,7 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
             socketRunnable = runnable;
             uiHandler.post(uiRunnable);
         }
-    };
+    }
 
     protected class RecordingView {
 
