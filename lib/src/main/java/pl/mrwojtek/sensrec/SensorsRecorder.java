@@ -68,7 +68,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     public static final short TYPE_GPS = -6;
     public static final short TYPE_GPS_NMEA = -7;
 
-    protected static final int LOG_VERSION = 1100;
+    protected static final int LOG_VERSION = 1200;
 
     protected static final String SEPARATOR = "\t";
     protected static final String NEW_LINE = "\n";
@@ -331,7 +331,9 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
                 .write(LOG_VERSION)                         // 4B
                 .write(time)                                // 8B
                 .write(wallTime)                            // 8B
-                .write(-1.0)                                // 8B
+                .write(lastDuration)                        // 8B
+                .write(0l)                                  // 8B, moving time
+                .write(-1.0)                                // 8B, move distance
                 .save();
     }
 

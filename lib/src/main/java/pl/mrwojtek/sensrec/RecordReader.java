@@ -39,14 +39,16 @@ public class RecordReader {
     protected static final String TAG = "SensRec";
 
     protected static final int START_BINARY_LENGTH = 28 + SensorsRecorder.MAGIC_WORD.length();
-    protected static final int END_BINARY_LENGTH = 36 + SensorsRecorder.MAGIC_WORD.length();
-    protected static final int END_TEXT_EXPECTED_LENGTH = 50 + SensorsRecorder.MAGIC_WORD.length();
+    protected static final int END_BINARY_LENGTH_1100 = 36 + SensorsRecorder.MAGIC_WORD.length();
+    protected static final int END_BINARY_LENGTH_1200 = 52 + SensorsRecorder.MAGIC_WORD.length();
+    protected static final int END_TEXT_EXPECTED_LENGTH = 70 + SensorsRecorder.MAGIC_WORD.length();
     protected static final int END_TEXT_MAX_LENGTH = 1024;
 
     protected SensorsRecorder recorder;
     protected Date startDate;
     protected Date endDate;
     protected Long duration;
+    protected Long movingTime;
     protected Double length;
     protected Long endMilliseconds;
     protected long startMilliseconds;
@@ -164,7 +166,7 @@ public class RecordReader {
                 if (dis.read(magicWord, 0, magicWord.length) == magicWord.length &&
                         Arrays.equals(magicBytes, magicWord)) {
                     version = dis.readInt();
-                    if (version == 1100) {
+                    if (version == 1100 || version == 1200) {
                         startMilliseconds = dis.readLong();
                         startDate = new Date(dis.readLong());
                         binary = true;
@@ -186,7 +188,7 @@ public class RecordReader {
             Scanner scanner = new Scanner(raf.getChannel());
             if (scanner.hasNextInt()) {
                 version = scanner.nextInt();
-                if (version == 1100) {
+                if (version == 1100 || version == 1200) {
                     if (!scanner.hasNextLong()) {
                         return false;
                     } else {
@@ -215,9 +217,10 @@ public class RecordReader {
     }
 
     private boolean tryEndBinary(byte[] buffer, RandomAccessFile raf) throws IOException {
-        if (raf.length() > END_BINARY_LENGTH) {
-            raf.seek(raf.length() - END_BINARY_LENGTH);
-            if (raf.read(buffer, 0, END_BINARY_LENGTH) == END_BINARY_LENGTH) {
+        int binaryLength = version == 1200 ? END_BINARY_LENGTH_1200 : END_BINARY_LENGTH_1100;
+        if (raf.length() > binaryLength) {
+            raf.seek(raf.length() - binaryLength);
+            if (raf.read(buffer, 0, binaryLength) == binaryLength) {
                 DataInputStream dis = new DataInputStream(new ByteArrayInputStream(buffer));
 
                 // Check header
@@ -237,8 +240,13 @@ public class RecordReader {
                 // Read data
                 endMilliseconds = dis.readLong();
                 endDate = new Date(dis.readLong());
+                if (version == 1200) {
+                    duration = dis.readLong();
+                    movingTime = dis.readLong();
+                } else {
+                    duration = endMilliseconds - startMilliseconds;
+                }
                 length = dis.readDouble();
-                duration = endMilliseconds - startMilliseconds;
                 return true;
             }
         }
@@ -304,12 +312,24 @@ public class RecordReader {
                 }
                 endDate = new Date(scanner.nextLong());
 
+                if (version == 1200) {
+                    if (!scanner.hasNextLong()) {
+                        return 1;
+                    }
+                    duration = scanner.nextLong();
+
+                    if (!scanner.hasNextLong()) {
+                        return 1;
+                    }
+                    movingTime = scanner.nextLong();
+                } else {
+                    duration = endMilliseconds - startMilliseconds;
+                }
+
                 if (!scanner.hasNextDouble()) {
                     return 1;
                 }
                 length = scanner.nextDouble();
-
-                duration = endMilliseconds - startMilliseconds;
 
                 return 0;
             }
