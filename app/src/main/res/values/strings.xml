@@ -38,6 +38,7 @@
     <string name="records_size_distance_time">%1$s for %2$s in %3$s</string>
     <string name="records_size_time">%1$s in %2$s</string>
     <string name="records_size">%1$s</string>
+    <string name="records_recording">Recording…</string>
     <string name="records_dates_wide">%1$s to %2$s</string>
     <string name="records_share_failed">No application to share those records with</string>
     <string name="records_delete_failed">Not all records could be deleted</string>

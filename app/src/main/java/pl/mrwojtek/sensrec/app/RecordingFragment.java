@@ -81,8 +81,8 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
     protected TextView networkStatusText;
 
     protected List<RecordingView> recordings = new ArrayList<>();
-    protected FileOutputListener onFileListener = new FileOutputListener();
-    protected SocketOutputListener onSocketListener = new SocketOutputListener();
+    protected FileOutputListener fileListener = new FileOutputListener();
+    protected SocketOutputListener socketListener = new SocketOutputListener();
 
     public static RecordingFragment newInstance(boolean freezeOnStop) {
         Bundle args = new Bundle();
@@ -160,17 +160,17 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
     @Override
     public void onStart() {
         super.onStart();
-        onFileListener.setVisibility(View.GONE);
-        onSocketListener.setVisibility(View.GONE);
+        fileListener.setVisibility(View.GONE);
+        socketListener.setVisibility(View.GONE);
         activity.getRecorder().addOnRecordingListener(this, true);
-        activity.getRecorder().getOutput().getFileOutput().setOnFileListener(onFileListener);
-        activity.getRecorder().getOutput().getSocketOutput().setOnSocketListener(onSocketListener);
+        activity.getRecorder().getOutput().getFileOutput().addOnFileListener(fileListener);
+        activity.getRecorder().getOutput().getSocketOutput().setOnSocketListener(socketListener);
     }
 
     @Override
     public void onStop() {
         activity.getRecorder().getOutput().getSocketOutput().setOnSocketListener(null);
-        activity.getRecorder().getOutput().getFileOutput().setOnFileListener(null);
+        activity.getRecorder().getOutput().getFileOutput().removeOnFileListener(fileListener);
         activity.getRecorder().removeOnRecordingListener(this);
         uiHandler.removeCallbacks(recordingRunnable);
         super.onStop();

@@ -28,6 +28,7 @@ import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import pl.mrwojtek.sensrec.FileOutput;
 import pl.mrwojtek.sensrec.RecordReader;
 import pl.mrwojtek.sensrec.SensorsRecorder;
 
@@ -59,6 +61,7 @@ public class Records extends Fragment {
     private int activatedCount;
     private int lastRecordId;
     private SensorsRecorder recorder;
+    private FileListener fileListener;
 
     private List<RecordEntry> records = new ArrayList<>();
     private Map<String, RecordEntry> recordByName = new HashMap<>();
@@ -86,6 +89,10 @@ public class Records extends Fragment {
         recordsObserver = new RecordsObserver(recordsDirectory.getPath());
         recordsObserver.startWatching();
 
+        fileListener = new FileListener();
+        ((SensorsRecordActivity) getActivity()).getRecorder().getOutput().getFileOutput()
+                .addOnFileListener(fileListener);
+
         for (File d : recordsDirectory.listFiles()) {
             RecordEntry recordEntry = new RecordEntry(d);
             if (activated != null && activated.contains(recordEntry.getFile().getPath())) {
@@ -100,6 +107,9 @@ public class Records extends Fragment {
 
     @Override
     public void onDestroy() {
+        ((SensorsRecordActivity) getActivity()).getRecorder().getOutput().getFileOutput()
+                .removeOnFileListener(fileListener);
+
         recordsObserver.stopWatching();
         uiHandler.removeCallbacks(recordsObserver);
         super.onDestroy();
@@ -248,6 +258,22 @@ public class Records extends Fragment {
         }
     }
 
+    private void updateTabu(String tabuPreviousPath, String tabuPath) {
+        RecordEntry record = recordByName.get(tabuPreviousPath);
+        if (record != null) {
+            record.setTabu(false);
+            record.onModified();
+            notifyItemChanged(record.getPosition());
+        }
+
+        record = recordByName.get(tabuPath);
+        if (record != null) {
+            record.setTabu(true);
+            record.onModified();
+            notifyItemChanged(record.getPosition());
+        }
+    }
+
     void notifyCountsChanged() {
         if (onItemListener != null) {
             onItemListener.onCountsChanged();
@@ -285,6 +311,9 @@ public class Records extends Fragment {
         private long lastUpdateTime;
         private long scheduledTime;
         private boolean scheduled;
+        private String tabuPath;
+        private String tabuPreviousPath;
+        private boolean tabuUpdate;
 
         public RecordsObserver(String path) {
             super(path, FileObserver.MODIFY | FileObserver.CREATE | FileObserver.MOVED_TO |
@@ -292,8 +321,23 @@ public class Records extends Fragment {
             lastUpdateTime = SystemClock.elapsedRealtime() - MODIFICATION_INTERVAL;
         }
 
+        public synchronized void setTabuPath(String tabuPath) {
+            if (!this.tabuUpdate) {
+                this.tabuPreviousPath = this.tabuPath;
+            }
+
+            this.tabuPath = tabuPath;
+            this.tabuUpdate = true;
+
+            schedule(0);
+        }
+
         @Override
         public synchronized void onEvent(int event, String path) {
+            if (path.equals(tabuPath)) {
+                return;
+            }
+
             long delay = 0;
             switch (event) {
                 case FileObserver.MODIFY:
@@ -311,6 +355,10 @@ public class Records extends Fragment {
                     break;
             }
 
+            schedule(delay);
+        }
+
+        private void schedule(long delay) {
             long nextTime = SystemClock.uptimeMillis() + delay;
             if (scheduled && nextTime - scheduledTime < 0) {
                 uiHandler.removeCallbacks(this);
@@ -329,6 +377,10 @@ public class Records extends Fragment {
             Set<String> added;
             Set<String> deleted;
             Set<String> modified;
+            boolean tabuUpdate;
+            String tabuPath;
+            String tabuPreviousPath;
+
             synchronized (this) {
                 scheduled = false;
                 lastUpdateTime = SystemClock.elapsedRealtime();
@@ -338,8 +390,17 @@ public class Records extends Fragment {
                 this.deleted.clear();
                 modified = new HashSet<>(this.modified);
                 this.modified.clear();
+                tabuUpdate = this.tabuUpdate;
+                this.tabuUpdate = false;
+                tabuPath = this.tabuPath;
+                tabuPreviousPath = this.tabuPreviousPath;
             }
+
             updateRecords(added, deleted, modified);
+
+            if (tabuUpdate) {
+                updateTabu(tabuPreviousPath, tabuPath);
+            }
         }
     }
 
@@ -353,6 +414,7 @@ public class Records extends Fragment {
         private boolean activated;
         private int id;
         private int position;
+        private boolean tabu;
 
         public RecordEntry(File file) {
             this.file = file;
@@ -390,6 +452,14 @@ public class Records extends Fragment {
 
         public long getSize() {
             return file.length();
+        }
+
+        public boolean isTabu() {
+            return tabu;
+        }
+
+        public void setTabu(boolean tabu) {
+            this.tabu = tabu;
         }
 
         public boolean isActivated() {
@@ -430,6 +500,24 @@ public class Records extends Fragment {
 
         public int getPosition() {
             return position;
+        }
+    }
+
+    private class FileListener implements FileOutput.OnFileListener {
+
+        @Override
+        public void onError(int error) {
+            recordsObserver.setTabuPath(null);
+        }
+
+        @Override
+        public void onStart(String fileName) {
+            recordsObserver.setTabuPath(fileName);
+        }
+
+        @Override
+        public void onStop() {
+            recordsObserver.setTabuPath(null);
         }
     }
 }

@@ -27,8 +27,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -47,7 +49,7 @@ public class FileOutput {
 
     private RecorderOutput output;
     private SensorsRecorder recorder;
-    private OnFileListener onFileListener;
+    private List<OnFileListener> onFileListeners = new ArrayList<>();
 
     private boolean started;
     private FileOutputStream stream;
@@ -63,9 +65,13 @@ public class FileOutput {
         this.recorder = recorder;
     }
 
-    public void setOnFileListener(OnFileListener onFileListener) {
-        this.onFileListener = onFileListener;
-        notifyListener();
+    public void addOnFileListener(OnFileListener listener) {
+        onFileListeners.add(listener);
+        notifyListener(listener);
+    }
+
+    public void removeOnFileListener(OnFileListener listener) {
+        onFileListeners.remove(listener);
     }
 
     public boolean isStarted() {
@@ -208,37 +214,37 @@ public class FileOutput {
         }
     }
 
-    private void notifyListener() {
+    private void notifyListener(OnFileListener listener) {
         if (lastFileName != null) {
-            notifyStart(lastFileName);
+            listener.onStart(lastFileName);
         } else if (lastError != null) {
-            notifyError(lastError);
+            listener.onError(lastError);
         } else {
-            notifyStop();
+            listener.onStop();
         }
     }
 
     private void notifyError(int error) {
         lastFileName = null;
         lastError = error;
-        if (onFileListener != null) {
-            onFileListener.onError(error);
+        for (OnFileListener listener : onFileListeners) {
+            listener.onError(error);
         }
     }
 
     private void notifyStart(String fileName) {
         lastFileName = fileName;
         lastError = null;
-        if (onFileListener != null) {
-            onFileListener.onStart(fileName);
+        for (OnFileListener listener : onFileListeners) {
+            listener.onStart(fileName);
         }
     }
 
     private void notifyStop() {
         lastFileName = null;
         lastError = null;
-        if (onFileListener != null) {
-            onFileListener.onStop();
+        for (OnFileListener listener : onFileListeners) {
+            listener.onStop();
         }
     }
 

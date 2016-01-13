@@ -19,6 +19,8 @@
 
 package pl.mrwojtek.sensrec.app;
 
+import android.content.ContextWrapper;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -77,6 +79,9 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordsAdapter.RecordVi
         private RecordsFragment recordsFragment;
         private Records.RecordEntry record;
 
+        private int textColorPrimary;
+        private int textColorSecondary;
+
         public static RecordViewHolder newHolder(RecordsFragment recordsFragment,
                                                  ViewGroup parent) {
             LayoutInflater inflater = LayoutInflater.from(parent.getContext());
@@ -92,6 +97,11 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordsAdapter.RecordVi
             timeText = (TextView) itemView.findViewById(R.id.time_text);
             detailsText = (TextView) itemView.findViewById(R.id.details_text);
             itemView.setOnClickListener(this);
+
+            textColorPrimary = ContextCompat.getColor(recordsFragment.getContext(),
+                    R.color.colorTextPrimary);
+            textColorSecondary = ContextCompat.getColor(recordsFragment.getContext(),
+                    R.color.colorTextSecondary);
         }
 
         public void bind(Records.RecordEntry record) {
@@ -113,15 +123,22 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordsAdapter.RecordVi
                 timeText.setText(DateFormat.getTimeInstance().format(startDate));
             }
 
-            String written = MaterialUtils.formatBytesWritten(record.getSize());
-            if (record.getDuration() != null) {
-                String timeText = RecordingService.getTimeText(
-                        detailsText.getContext(), R.string.record_clock, record.getDuration());
-                detailsText.setText(detailsText.getContext()
-                        .getString(R.string.records_size_time, written, timeText));
+            if (!record.isTabu()) {
+                String written = MaterialUtils.formatBytesWritten(record.getSize());
+                if (record.getDuration() != null) {
+                    String timeText = RecordingService.getTimeText(
+                            detailsText.getContext(), R.string.record_clock, record.getDuration());
+                    detailsText.setText(detailsText.getContext()
+                            .getString(R.string.records_size_time, written, timeText));
+                } else {
+                    detailsText.setText(detailsText.getContext()
+                            .getString(R.string.records_size, written));
+                }
+                detailsText.setTextColor(ContextCompat.getColor(detailsText.getContext(),
+                        R.color.colorTextSecondary));
             } else {
-                detailsText.setText(detailsText.getContext()
-                        .getString(R.string.records_size, written));
+                detailsText.setText(R.string.records_recording);
+                detailsText.setTextColor(textColorPrimary);
             }
 
             itemView.setActivated(record.isActivated());
