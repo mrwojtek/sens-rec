@@ -326,12 +326,13 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     public void recordStop(Output.Record record) {
         long time = SystemClock.elapsedRealtime();
         long wallTime = System.currentTimeMillis();
+        long duration = getDuration(SystemClock.elapsedRealtime());
         record.start(TYPE_END, (short) 0)                   // 4B
                 .write(MAGIC_WORD, 0, MAGIC_WORD.length())  // 4B + len(MAGIC_WORD)
                 .write(LOG_VERSION)                         // 4B
                 .write(time)                                // 8B
                 .write(wallTime)                            // 8B
-                .write(lastDuration)                        // 8B
+                .write(duration)                            // 8B
                 .write(0l)                                  // 8B, moving time
                 .write(-1.0)                                // 8B, move distance
                 .save();
