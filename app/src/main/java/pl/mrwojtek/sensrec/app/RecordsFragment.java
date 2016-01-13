@@ -53,6 +53,8 @@ public class RecordsFragment extends Fragment implements DeleteConfirmationDialo
     private RecyclerView recycler;
     private TextView fallbackText;
 
+    private boolean recordsAdapterWide;
+
     private ActionMode actionMode;
     private ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
 
@@ -103,6 +105,8 @@ public class RecordsFragment extends Fragment implements DeleteConfirmationDialo
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        recordsAdapterWide = getResources().getBoolean(R.bool.recording_adapter_wide);
+
         records = (Records) getActivity().getSupportFragmentManager()
                 .findFragmentByTag(Records.FRAGMENT_TAG);
 
@@ -159,6 +163,10 @@ public class RecordsFragment extends Fragment implements DeleteConfirmationDialo
         if (!records.deleteActivated()) {
             Snackbar.make(recycler, R.string.records_delete_failed, Snackbar.LENGTH_LONG).show();
         }
+    }
+
+    public boolean isRecordsAdapterWide() {
+        return recordsAdapterWide;
     }
 
     public void resolveActionMode() {

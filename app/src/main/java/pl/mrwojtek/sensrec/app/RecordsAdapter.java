@@ -99,9 +99,19 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordsAdapter.RecordVi
 
             nameText.setText(record.getName());
 
-            Date date = record.getDate();
-            dateText.setText(DateFormat.getDateInstance().format(date));
-            timeText.setText(DateFormat.getTimeInstance().format(date));
+            Date startDate = record.getDate();
+            Date endDate = record.getEndDate();
+
+            String startDateString = DateFormat.getDateInstance().format(startDate);
+            dateText.setText(startDateString);
+
+            if (recordsFragment.isRecordsAdapterWide() && endDate != null) {
+                timeText.setText(timeText.getContext().getString(R.string.records_dates_wide,
+                        DateFormat.getTimeInstance().format(startDate),
+                        DateFormat.getTimeInstance().format(endDate)));
+            } else {
+                timeText.setText(DateFormat.getTimeInstance().format(startDate));
+            }
 
             String written = MaterialUtils.formatBytesWritten(record.getSize());
             if (record.getDuration() != null) {

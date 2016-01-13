@@ -85,6 +85,10 @@ public class RecordReader {
         return startDate;
     }
 
+    public Date getEndDate() {
+        return endDate;
+    }
+
     public long getStartTime() {
         return startTime;
     }

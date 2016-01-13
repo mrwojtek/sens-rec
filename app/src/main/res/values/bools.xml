@@ -2,5 +2,6 @@
 <resources>
 
     <bool name="recording_dual_fragments">false</bool>
+    <bool name="recording_adapter_wide">false</bool>
 
 </resources>

@@ -346,6 +346,7 @@ public class Records extends Fragment {
     public class RecordEntry implements Comparable<RecordEntry> {
 
         private Date date;
+        private Date endDate;
         private Long duration;
         private Double distance;
         private File file;
@@ -365,6 +366,10 @@ public class Records extends Fragment {
 
         public Date getDate() {
             return date;
+        }
+
+        public Date getEndDate() {
+            return endDate;
         }
 
         public Long getDuration() {
@@ -400,11 +405,17 @@ public class Records extends Fragment {
         public void onModified() {
             RecordReader reader = new RecordReader(recorder);
             if (reader.readStartEnd(file)) {
-                //this.date = new Date(file.lastModified());
                 date = reader.getStartDate();
+                endDate = reader.getEndDate();
                 duration = reader.getDuration();
             } else {
                 date = null;
+                endDate = null;
+                duration = null;
+            }
+
+            if (date == null) {
+                date = new Date(file.lastModified());
             }
         }
 
