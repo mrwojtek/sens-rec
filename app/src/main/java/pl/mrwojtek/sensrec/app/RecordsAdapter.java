@@ -81,6 +81,7 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordsAdapter.RecordVi
 
         private int textColorPrimary;
         private int textColorSecondary;
+        private int textColorTertiary;
 
         public static RecordViewHolder newHolder(RecordsFragment recordsFragment,
                                                  ViewGroup parent) {
@@ -102,6 +103,8 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordsAdapter.RecordVi
                     R.color.colorTextPrimary);
             textColorSecondary = ContextCompat.getColor(recordsFragment.getContext(),
                     R.color.colorTextSecondary);
+            textColorTertiary = ContextCompat.getColor(recordsFragment.getContext(),
+                    R.color.colorTextHint);
         }
 
         public void bind(Records.RecordEntry record) {
@@ -121,6 +124,14 @@ public class RecordsAdapter extends RecyclerView.Adapter<RecordsAdapter.RecordVi
                         DateFormat.getTimeInstance().format(endDate)));
             } else {
                 timeText.setText(DateFormat.getTimeInstance().format(startDate));
+            }
+
+            if (record.isDateFallback()) {
+                dateText.setTextColor(textColorTertiary);
+                timeText.setTextColor(textColorTertiary);
+            } else {
+                dateText.setTextColor(textColorSecondary);
+                timeText.setTextColor(textColorSecondary);
             }
 
             if (!record.isTabu()) {

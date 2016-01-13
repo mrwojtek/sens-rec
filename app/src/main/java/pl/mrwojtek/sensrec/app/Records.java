@@ -415,6 +415,7 @@ public class Records extends Fragment {
         private int id;
         private int position;
         private boolean tabu;
+        private boolean dateFallback;
 
         public RecordEntry(File file) {
             this.file = file;
@@ -424,6 +425,10 @@ public class Records extends Fragment {
 
         public int getId() {
             return id;
+        }
+
+        public boolean isDateFallback() {
+            return dateFallback;
         }
 
         public Date getDate() {
@@ -478,6 +483,7 @@ public class Records extends Fragment {
                 date = reader.getStartDate();
                 endDate = reader.getEndDate();
                 duration = reader.getDuration();
+                dateFallback = false;
             } else {
                 date = null;
                 endDate = null;
@@ -486,6 +492,7 @@ public class Records extends Fragment {
 
             if (date == null) {
                 date = new Date(file.lastModified());
+                dateFallback = true;
             }
         }
 
