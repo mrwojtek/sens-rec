@@ -21,6 +21,7 @@ package pl.mrwojtek.sensrec.app;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.FileObserver;
 import android.os.Handler;
@@ -28,7 +29,6 @@ import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -56,12 +56,16 @@ public class Records extends Fragment {
     private static final String PARAM_ACTIVATED = "activated";
 
     private RecordsObserver recordsObserver;
+    private SensorsRecorder recorder;
     private File recordsDirectory;
     private Handler uiHandler;
     private int activatedCount;
     private int lastRecordId;
-    private SensorsRecorder recorder;
     private FileListener fileListener;
+    private RecordReader recordReader;
+
+    private RecordsInitializationTask initializationTask;
+    private final Object updateLock = new Object();
 
     private List<RecordEntry> records = new ArrayList<>();
     private Map<String, RecordEntry> recordByName = new HashMap<>();
@@ -84,17 +88,17 @@ public class Records extends Fragment {
         uiHandler = new Handler(getActivity().getMainLooper());
 
         recorder = RecordingService.getRecorder(getContext());
+        recordReader = new RecordReader(recorder);
 
         recordsDirectory = getActivity().getExternalFilesDir(null);
         recordsObserver = new RecordsObserver(recordsDirectory.getPath());
         recordsObserver.startWatching();
 
         fileListener = new FileListener();
-        ((SensorsRecordActivity) getActivity()).getRecorder().getOutput().getFileOutput()
-                .addOnFileListener(fileListener);
+        recorder.getOutput().getFileOutput().addOnFileListener(fileListener);
 
         for (File d : recordsDirectory.listFiles()) {
-            RecordEntry recordEntry = new RecordEntry(d);
+            RecordEntry recordEntry = new RecordEntry(d, true);
             if (activated != null && activated.contains(recordEntry.getFile().getPath())) {
                 recordEntry.toggleActivated();
             }
@@ -102,14 +106,19 @@ public class Records extends Fragment {
             recordByName.put(recordEntry.getName(), recordEntry);
         }
 
-        updateRecordsOrder(records);
+        updateRecordsOrder();
+
+        initializationTask = new RecordsInitializationTask(recorder, new ArrayList<>(records));
+        initializationTask.execute();
     }
 
     @Override
     public void onDestroy() {
-        ((SensorsRecordActivity) getActivity()).getRecorder().getOutput().getFileOutput()
-                .removeOnFileListener(fileListener);
-
+        if (initializationTask != null) {
+            initializationTask.cancel(false);
+            initializationTask = null;
+        }
+        recorder.getOutput().getFileOutput().removeOnFileListener(fileListener);
         recordsObserver.stopWatching();
         uiHandler.removeCallbacks(recordsObserver);
         super.onDestroy();
@@ -192,15 +201,15 @@ public class Records extends Fragment {
         return successful;
     }
 
-    private void updateRecordsOrder(List<RecordEntry> newRecords) {
-        Collections.sort(newRecords);
-
-        int index = 0;
-        for (RecordEntry record : newRecords) {
-            record.setPosition(index++);
+    private void updateRecordsOrder() {
+        synchronized (updateLock) {
+            Collections.sort(records);
         }
 
-        records = newRecords;
+        int index = 0;
+        for (RecordEntry record : records) {
+            record.setPosition(index++);
+        }
     }
 
     public void updateRecords(Set<String> added, Set<String> deleted, Set<String> modified) {
@@ -230,7 +239,7 @@ public class Records extends Fragment {
 
             for (String name : added) {
                 if (!deleted.contains(name)) {
-                    RecordEntry record = new RecordEntry(new File(recordsDirectory, name));
+                    RecordEntry record = new RecordEntry(new File(recordsDirectory, name), false);
                     newRecords.add(record);
                     recordByName.put(name, record);
                     changed = true;
@@ -238,7 +247,7 @@ public class Records extends Fragment {
             }
 
             if (changed) {
-                updateRecordsOrder(newRecords);
+                records = newRecords;
                 notifyCountsChanged();
             }
         }
@@ -246,7 +255,7 @@ public class Records extends Fragment {
         for (String name : modified) {
             RecordEntry record = recordByName.get(name);
             if (record != null) {
-                record.onModified();
+                changed |= !record.update(recordReader);
                 if (!changed) {
                     notifyItemChanged(record.getPosition());
                 }
@@ -254,6 +263,7 @@ public class Records extends Fragment {
         }
 
         if (changed) {
+            updateRecordsOrder();
             notifyDataSetChanged();
         }
     }
@@ -262,14 +272,21 @@ public class Records extends Fragment {
         RecordEntry record = recordByName.get(tabuPreviousPath);
         if (record != null) {
             record.setTabu(false);
-            record.onModified();
-            notifyItemChanged(record.getPosition());
+            refreshRecord(record);
         }
 
         record = recordByName.get(tabuPath);
         if (record != null) {
             record.setTabu(true);
-            record.onModified();
+            refreshRecord(record);
+        }
+    }
+
+    private void refreshRecord(RecordEntry record) {
+        if (!record.update(recordReader)) {
+            updateRecordsOrder();
+            notifyDataSetChanged();
+        } else {
             notifyItemChanged(record.getPosition());
         }
     }
@@ -417,10 +434,16 @@ public class Records extends Fragment {
         private boolean tabu;
         private boolean dateFallback;
 
-        public RecordEntry(File file) {
+        public RecordEntry(File file, boolean delayInitialization) {
             this.file = file;
             id = ++lastRecordId;
-            onModified();
+
+            if (delayInitialization) {
+                date = new Date(file.lastModified());
+                dateFallback = true;
+            } else {
+                update(recordReader);
+            }
         }
 
         public int getId() {
@@ -477,23 +500,59 @@ public class Records extends Fragment {
             return activated;
         }
 
-        public void onModified() {
+        /*public boolean onModified() {
+            Date previousDate = date;
             RecordReader reader = new RecordReader(recorder);
+            long end = 0;
+            long start = SystemClock.elapsedRealtimeNanos();
             if (reader.readStartEnd(file)) {
+                end = SystemClock.elapsedRealtimeNanos();
                 date = reader.getStartDate();
                 endDate = reader.getEndDate();
                 duration = reader.getDuration();
                 dateFallback = false;
             } else {
+                end = SystemClock.elapsedRealtimeNanos();
                 date = null;
                 endDate = null;
                 duration = null;
             }
+            Log.i(TAG, "duration: " + (end - start) / 1e6);
 
             if (date == null) {
                 date = new Date(file.lastModified());
                 dateFallback = true;
             }
+
+            return date.equals(previousDate);
+        }
+*/
+        public boolean update(RecordReader reader) {
+            Date previousDate;
+            Date newDate;
+
+            if (reader.readStartEnd(file)) {
+                synchronized (updateLock) {
+                    previousDate = date;
+                    date = reader.getStartDate();
+                    endDate = reader.getEndDate();
+                    duration = reader.getDuration();
+                    dateFallback = false;
+                    newDate = date;
+                }
+            } else {
+                synchronized (updateLock) {
+                    previousDate = date;
+                    date = new Date(file.lastModified());
+                    dateFallback = true;
+                    endDate = null;
+                    duration = null;
+                    dateFallback = true;
+                    newDate = date;
+                }
+            }
+
+            return newDate.equals(previousDate);
         }
 
         @Override
@@ -525,6 +584,36 @@ public class Records extends Fragment {
         @Override
         public void onStop() {
             recordsObserver.setTabuPath(null);
+        }
+    }
+
+    private class RecordsInitializationTask extends AsyncTask<Void, Void, Void> {
+
+        private RecordReader reader;
+        private List<RecordEntry> records;
+
+        public RecordsInitializationTask(SensorsRecorder recorder,
+                                         ArrayList<RecordEntry> records) {
+            this.records = records;
+            reader = new RecordReader(recorder);
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            for (RecordEntry entry : records) {
+                if (isCancelled()) {
+                    break;
+                }
+                entry.update(reader);
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void nothing) {
+            updateRecordsOrder();
+            notifyDataSetChanged();
+            initializationTask = null;
         }
     }
 }

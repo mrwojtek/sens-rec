@@ -64,9 +64,9 @@ public class SensorsRecordActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.sensors_record_activity);
 
-        dual = getResources().getBoolean(R.bool.recording_dual_fragments);
-
         recorder = RecordingService.getRecorder(this);
+
+        dual = getResources().getBoolean(R.bool.recording_dual_fragments);
 
         stopPauseLayout = findViewById(R.id.stop_pause_layout);
 
