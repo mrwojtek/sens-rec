@@ -132,7 +132,7 @@ def quadratic_array(X, Y, DY, top_left, bottom_right):
         return __points_to_path_quadratic(points, top_left, bottom_right, \
                                           xrange, yrange)
     
-def quadratic_fun(f, df, x0, x1, n, top_left, bottom_right):
+def quadratic_fun(f, df, x0, x1, n, top_left, bottom_right, debug=False):
     if n > 0:                    
         def append_interval(points, yrange, x0, y0, dy0, x2, y2, dy2):
             try:
@@ -142,7 +142,8 @@ def quadratic_fun(f, df, x0, x1, n, top_left, bottom_right):
                 yrange = __resolve_yrange_quadratic(yrange, \
                                                     x0, y0, x1, y1, x2, y2)
             except ValueError:
-                print('Dividing between %f and %f' % (x0, x2))
+                if debug:
+                    print('Dividing between %f and %f' % (x0, x2))
                 xm = (x0 + x2) / 2.0
                 ym, dym = f(xm), df(xm)
                 yrange = append_interval(points, yrange, \
