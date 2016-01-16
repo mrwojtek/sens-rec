@@ -97,6 +97,7 @@ public class Records extends Fragment {
         fileListener = new FileListener();
         recorder.getOutput().getFileOutput().addOnFileListener(fileListener);
 
+        // TODO: Move this listing to the initialization task
         for (File d : recordsDirectory.listFiles()) {
             RecordEntry recordEntry = new RecordEntry(d, true);
             if (activated != null && activated.contains(recordEntry.getFile().getPath())) {
