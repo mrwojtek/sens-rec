@@ -102,14 +102,18 @@ public class RecordsActivity extends AppCompatActivity implements
             }
         });
 
+        FragmentManager fm = getSupportFragmentManager();
         if (savedInstanceState == null) {
-            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            FragmentTransaction ft = fm.beginTransaction();
             ft.add(new Records(), Records.FRAGMENT_TAG);
             ft.add(R.id.recording_container, RecordingFragment.newInstance(true),
                     RecordingFragment.FRAGMENT_TAG);
             ft.add(R.id.records_container, new RecordsFragment(), RecordsFragment.FRAGMENT_TAG);
             ft.commit();
+            fm.executePendingTransactions();
         }
+
+        updateRecordingState(false);
     }
 
     @Override
@@ -185,7 +189,8 @@ public class RecordsActivity extends AppCompatActivity implements
 
             if (recordingActive && (!recordsFragment.isHidden() || recordingFragment.isHidden())) {
                 FragmentTransaction ft = fm.beginTransaction();
-                ft.setCustomAnimations(R.anim.slide_in_bottom, R.anim.slide_out_top);
+                if (animate)
+                    ft.setCustomAnimations(R.anim.slide_in_bottom, R.anim.slide_out_top);
                 ft.show(recordingFragment);
                 ft.hide(recordsFragment);
                 ft.commit();
@@ -193,7 +198,8 @@ public class RecordsActivity extends AppCompatActivity implements
 
             if (!recordingActive && (recordsFragment.isHidden() || !recordingFragment.isHidden())) {
                 FragmentTransaction ft = fm.beginTransaction();
-                ft.setCustomAnimations(R.anim.slide_in_bottom, R.anim.slide_out_top);
+                if (animate)
+                    ft.setCustomAnimations(R.anim.slide_in_bottom, R.anim.slide_out_top);
                 ft.show(recordsFragment);
                 ft.hide(recordingFragment);
                 ft.commit();
