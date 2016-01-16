@@ -5,7 +5,7 @@
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="pl.mrwojtek.sensrec.app.SensorsRecordActivity" >
+    tools:context=".RecordsActivity" >
 
     <FrameLayout
         android:id="@+id/records_container"

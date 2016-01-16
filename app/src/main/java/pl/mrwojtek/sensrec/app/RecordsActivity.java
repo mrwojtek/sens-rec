@@ -38,7 +38,7 @@ import pl.mrwojtek.sensrec.SensorsRecorder;
 /**
  * Main activity for this application.
  */
-public class SensorsRecordActivity extends AppCompatActivity implements
+public class RecordsActivity extends AppCompatActivity implements
         SensorsRecorder.OnRecordingListener {
 
     private static final String TAG = "SensRec";

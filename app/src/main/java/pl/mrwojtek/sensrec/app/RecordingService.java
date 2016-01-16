@@ -277,7 +277,7 @@ public class RecordingService extends Service implements SensorsRecorder.OnRecor
 
     public PendingIntent getContentIntent() {
         if (contentIntent == null) {
-            Intent intent = new Intent(this, SensorsRecordActivity.class);
+            Intent intent = new Intent(this, RecordsActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
             contentIntent = PendingIntent.getActivity(
                     this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);

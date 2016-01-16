@@ -58,7 +58,7 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
     private static final int DOT_TICK = 500;
     private static final int MINIMUM_DELAY = 300;
 
-    protected SensorsRecordActivity activity;
+    protected RecordsActivity activity;
     protected Handler uiHandler;
     protected Runnable recordingRunnable;
 
@@ -95,7 +95,7 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        activity = (SensorsRecordActivity) context;
+        activity = (RecordsActivity) context;
     }
 
     @Nullable
