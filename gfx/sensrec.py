@@ -126,16 +126,16 @@ def make_launcher_icon(path, with_background=True):
                         
     # Button gradient
     bg = dwg.radialGradient((0.5, 0.5), 0.5, gradientUnits='objectBoundingBox')
-    bg.add_stop_color((radius - 2.0)/(radius + 1.0), colors['lime_500_shade'])
+    bg.add_stop_color((radius - 2.0)/(radius + 4.0), colors['lime_700_shade'])
     bg.add_stop_color(1.0, colors['lime_500_shade'], opacity=0.0)
     dwg.defs.add(bg)
     
     # Button
-    dwg.add(dwg.ellipse((bottom_right[0], height / 2.0 - 1.0), \
-                        (radius, radius), \
-                         fill=colors['lime_500_tint']))
+#    dwg.add(dwg.ellipse((bottom_right[0], height / 2.0 - 2.0), \
+#                        (radius, radius), \
+#                         fill=colors['lime_500_tint']))
     dwg.add(dwg.ellipse((bottom_right[0], height / 2.0 + 2.0),
-                        (radius + 1.0, radius + 1.0), \
+                        (radius + 2.0, radius + 4.0), \
                          fill=bg.get_paint_server()))
     dwg.add(dwg.ellipse((bottom_right[0], height / 2.0), (radius, radius), \
                          fill=colors['lime_500']))
