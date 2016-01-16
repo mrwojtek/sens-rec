@@ -56,27 +56,27 @@ class SensRecFun:
         self.D = D
         
     def fun(self, x):
-        return math.sin(self.C*x) * (1.0 - self.A*x**2) * \
+        return math.sin(self.C*x) * (1.0 - self.A*x**2) *\
                math.exp(-self.D*x**2)
                
     def dfun(self, x):
-        return math.exp(-self.D*x**2) * (self.C*(1.0 - self.A*x**2) * \
+        return math.exp(-self.D*x**2) * (self.C*(1.0 - self.A*x**2) *\
                math.cos(self.C*x) +
-               2.0*x*(-self.D + self.A*(-1.0 + self.D*x**2)) * \
+               2.0*x*(-self.D + self.A*(-1.0 + self.D*x**2)) *\
                math.sin(self.C*x))
 
 def export_icon(prefix, path, width, height, with_xxxhdpi=False):
     m = re.match('(.*)\\.svg', path)
     if m is not None:
-        scales = [ ('mdpi', 1, 1), \
-                   ('hdpi', 3, 2), \
-                   ('xhdpi', 2, 1), \
+        scales = [ ('mdpi', 1, 1),\
+                   ('hdpi', 3, 2),\
+                   ('xhdpi', 2, 1),\
                    ('xxhdpi', 3, 1) ]
         if with_xxxhdpi:
             scales.append(('xxxhdpi', 4, 1))
         for suffix, p, q in scales:
             dir = '%s-%s' % (prefix, suffix)
-            cmd = 'inkscape -z -e %s%s%s.png -w %d -h %d %s' % \
+            cmd = 'inkscape -z -e %s%s%s.png -w %d -h %d %s' %\
                 (dir, os.path.sep, m.group(1) , width*p/q, height*p/q, path)
             print(cmd)
             os.makedirs(dir, exist_ok=True)
@@ -97,16 +97,16 @@ def make_launcher_icon(path, with_background=True):
     bottom_right = (width - radius - padding, height - padding - stroke/2.0)
 
     f = SensRecFun(0.5, 3*np.pi, 0.28)
-    p = svgpaths.quadratic_fun(f.fun, f.dfun, -1.0, 1.0, 22, \
+    p = svgpaths.quadratic_fun(f.fun, f.dfun, -1.0, 1.0, 22,\
                                 top_left, bottom_right)
                     
     dwg = svgwrite.Drawing(path, size=(width, height), profile='tiny')
     
     # Background
     if with_background:
-        bg = dwg.radialGradient((0.5, 0.5), 0.5, \
+        bg = dwg.radialGradient((0.5, 0.5), 0.5,\
                                 gradientUnits='objectBoundingBox')
-        bg.add_stop_color((outer_radius - 3.0)/(outer_radius + 6.0), \
+        bg.add_stop_color((outer_radius - 3.0)/(outer_radius + 6.0),\
                           colors['grey_400_shade'])
         bg.add_stop_color(1.0, colors['grey_400_shade'], opacity=0.0)
         dwg.defs.add(bg)
@@ -116,12 +116,12 @@ def make_launcher_icon(path, with_background=True):
         dwg.add(dwg.ellipse((width/2.0, height/2.0 + 3.0),\
                             (outer_radius + 4.0, outer_radius + 6.0),\
                             fill=bg.get_paint_server()))
-        dwg.add(dwg.ellipse((width/2.0, height/2.0), \
+        dwg.add(dwg.ellipse((width/2.0, height/2.0),\
                             (outer_radius, outer_radius),\
                             fill=colors['grey_50']))
                 
     # Function
-    dwg.add(dwg.path(p, fill='none', stroke=colors['red_500'], \
+    dwg.add(dwg.path(p, fill='none', stroke=colors['red_500'],\
                         stroke_linecap='round', stroke_width=stroke))
                         
     # Button gradient
@@ -135,9 +135,9 @@ def make_launcher_icon(path, with_background=True):
 #                        (radius, radius), \
 #                         fill=colors['lime_500_tint']))
     dwg.add(dwg.ellipse((bottom_right[0], height / 2.0 + 2.0),
-                        (radius + 2.0, radius + 4.0), \
+                        (radius + 2.0, radius + 4.0),\
                          fill=bg.get_paint_server()))
-    dwg.add(dwg.ellipse((bottom_right[0], height / 2.0), (radius, radius), \
+    dwg.add(dwg.ellipse((bottom_right[0], height / 2.0), (radius, radius),\
                          fill=colors['lime_500']))
                          
     dwg.save()
@@ -153,23 +153,23 @@ def make_status_icon(path):
     bottom_right = (width - radius - padding, height - padding - stroke/2.0)
     
     f = SensRecFun(0.5, 3*np.pi, 0.28)
-    p = svgpaths.quadratic_fun(f.fun, f.dfun, -1.0, 1.0/3.0, 22, \
+    p = svgpaths.quadratic_fun(f.fun, f.dfun, -1.0, 1.0/3.0, 22,\
                                top_left, bottom_right)
     
-    dwg = svgwrite.Drawing(path, size=(width, height), \
+    dwg = svgwrite.Drawing(path, size=(width, height),\
                            profile='tiny')
-    dwg.add(dwg.path(p, stroke=svgwrite.rgb(100, 100, 100, '%'), fill='none', \
+    dwg.add(dwg.path(p, stroke=svgwrite.rgb(100, 100, 100, '%'), fill='none',\
                      stroke_linecap='butt', stroke_width=stroke))
-    dwg.add(dwg.ellipse((bottom_right[0], height/2.0), (radius, radius), \
+    dwg.add(dwg.ellipse((bottom_right[0], height/2.0), (radius, radius),\
                          fill=svgwrite.rgb(100, 100, 100, '%')))
     dwg.save()
     return path, width, height
 
-launcher_icon = make_launcher_icon('ic_launcher_sens_rec.svg', \
+launcher_icon = make_launcher_icon('ic_launcher_sens_rec.svg',\
                                    with_background=True)
-export_icon('..\\app\\src\\main\\res\\mipmap', *launcher_icon, \
+export_icon('..\\app\\src\\main\\res\\mipmap', *launcher_icon,\
             with_xxxhdpi=True)
             
-#status_icon = make_status_icon('ic_stat_sens_rec.svg');
-#export_icon('..\\app\\src\\main\\res\\drawable', *status_icon)
+status_icon = make_status_icon('ic_stat_sens_rec.svg');
+export_icon('..\\app\\src\\main\\res\\drawable', *status_icon)
 
