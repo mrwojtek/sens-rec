@@ -39,7 +39,6 @@ public class RecordReader {
     protected static final String TAG = "SensRec";
 
     protected static final int START_BINARY_LENGTH = 28 + SensorsRecorder.MAGIC_WORD.length();
-    protected static final int END_BINARY_LENGTH_1100 = 36 + SensorsRecorder.MAGIC_WORD.length();
     protected static final int END_BINARY_LENGTH_1200 = 52 + SensorsRecorder.MAGIC_WORD.length();
     protected static final int END_TEXT_EXPECTED_LENGTH = 70 + SensorsRecorder.MAGIC_WORD.length();
     protected static final int END_TEXT_MAX_LENGTH = 1024;
@@ -187,7 +186,7 @@ public class RecordReader {
 
             // Resolve start frame version and read data
             version = dis.readInt();
-            if (version == 1100 || version == 1200) {
+            if (version == 1200) {
                 startTime = dis.readLong();
                 startDate = new Date(dis.readLong());
                 binary = true;
@@ -212,7 +211,7 @@ public class RecordReader {
 
             // Resolve start frame version and read data
             version = scanner.nextInt();
-            if (version == 1100 || version == 1200) {
+            if (version == 1200) {
                 if (!scanner.hasNextLong()) {
                     return false;
                 }
@@ -238,7 +237,7 @@ public class RecordReader {
     }
 
     private boolean tryEndBinary(RandomAccessFile raf) throws IOException {
-        int binaryLength = version == 1200 ? END_BINARY_LENGTH_1200 : END_BINARY_LENGTH_1100;
+        int binaryLength = END_BINARY_LENGTH_1200;
         if (raf.length() > binaryLength) {
             // Read last bytes that could potentially be an ending frame from file
             raf.seek(raf.length() - binaryLength);
@@ -263,17 +262,11 @@ public class RecordReader {
             }
 
             // Read end frame data
-            if (version == 1100 || version == 1200) {
+            if (version == 1200) {
                 endTime = dis.readLong();
                 endDate = new Date(dis.readLong());
-
-                if (version == 1200) {
-                    duration = dis.readLong();
-                    movingDuration = dis.readLong();
-                } else {
-                    duration = endTime - startTime;
-                }
-
+                duration = dis.readLong();
+                movingDuration = dis.readLong();
                 totalDistance = dis.readDouble();
                 return true;
             }
@@ -339,7 +332,7 @@ public class RecordReader {
                 }
 
                 // Read end frame data
-                if (version == 1100 || version == 1200) {
+                if (version == 1200) {
                     if (!scanner.hasNextLong()) {
                         return 1;
                     }
@@ -350,19 +343,15 @@ public class RecordReader {
                     }
                     endDate = new Date(scanner.nextLong());
 
-                    if (version == 1200) {
-                        if (!scanner.hasNextLong()) {
-                            return 1;
-                        }
-                        duration = scanner.nextLong();
-
-                        if (!scanner.hasNextLong()) {
-                            return 1;
-                        }
-                        movingDuration = scanner.nextLong();
-                    } else {
-                        duration = endTime - startTime;
+                    if (!scanner.hasNextLong()) {
+                        return 1;
                     }
+                    duration = scanner.nextLong();
+
+                    if (!scanner.hasNextLong()) {
+                        return 1;
+                    }
+                    movingDuration = scanner.nextLong();
 
                     if (!scanner.hasNextDouble()) {
                         return 1;
