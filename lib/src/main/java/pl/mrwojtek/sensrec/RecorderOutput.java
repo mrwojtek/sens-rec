@@ -172,6 +172,8 @@ public class RecorderOutput extends Output {
         @Override
         public Output.Record start(short typeId, short deviceId) {
             super.start(typeId, deviceId);
+            if (typeId == 0)
+                throw new RuntimeException("typeId = 0");
             write(typeId);
             write(deviceId);
             return this;

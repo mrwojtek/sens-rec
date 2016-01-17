@@ -98,12 +98,12 @@ public class BatteryRecorder implements Recorder, Runnable {
         int voltage = batteryStatus.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1);
         int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-        float batteryPct = level / (float)scale;
+        float percentage = level / (float) scale;
 
         sensorsRecorder.getOutput()
                 .start(SensorsRecorder.TYPE_BATTERY_VOLTAGE, getDeviceId())
                 .write(millisecond)
-                .write(batteryPct)
+                .write(percentage)
                 .write(voltage)
                 .write(temperature)
                 .save();

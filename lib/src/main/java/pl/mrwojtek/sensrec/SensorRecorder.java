@@ -130,11 +130,15 @@ public class SensorRecorder implements Recorder, SensorEventListener {
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         long millisecond = SystemClock.elapsedRealtime();
+        float resolution = sensor.getResolution();
+        float maximumRange = sensor.getMaximumRange();
 
         sensorsRecorder.getOutput()
                 .start(getAccuracyId(), getDeviceId())
                 .write(millisecond)
                 .write(accuracy)
+                .write(resolution)
+                .write(maximumRange)
                 .save();
     }
 

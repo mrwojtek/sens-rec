@@ -68,7 +68,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     public static final short TYPE_GPS = -6;
     public static final short TYPE_GPS_NMEA = -7;
 
-    protected static final int LOG_VERSION = 1200;
+    protected static final int LOG_VERSION = 1300;
 
     protected static final String SEPARATOR = "\t";
     protected static final String NEW_LINE = "\n";
