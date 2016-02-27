@@ -28,6 +28,7 @@ import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 
 import java.util.List;
 
@@ -47,10 +48,13 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.settings_activity);
 
-        getFragmentManager().beginTransaction()
-                .replace(android.R.id.content, new SettingsFragment())
-                .commit();
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+//        getFragmentManager().beginTransaction()
+//                .replace(android.R.id.content, new SettingsFragment())
+//                .commit();
     }
 
     public static class SettingsFragment extends PreferenceFragment implements

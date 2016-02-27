@@ -13,6 +13,7 @@
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="windowActionModeOverlay">true</item>
     </style>
 
     <style name="AppTheme.ActionBar.Solid" parent="@style/Widget.AppCompat.Light.ActionBar.Solid">

@@ -40,7 +40,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/record_restart"
-                android:textColor="@color/colorAccent"
+                android:textColor="@color/colorPrimary"
                 android:background="@drawable/recording_restart_button_background"
                 android:visibility="gone" />
 
@@ -54,7 +54,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/record_start"
-        android:textColor="@color/colorAccent"
+        android:textColor="@color/colorPrimary"
         android:background="@drawable/recording_start_button_background" />
 
 </FrameLayout>

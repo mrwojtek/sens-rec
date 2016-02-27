@@ -5,6 +5,6 @@
         android:fromYDelta="100%"
         android:toYDelta="0"
         android:interpolator="@android:anim/overshoot_interpolator"
-        android:duration="500"/>
+        android:duration="@integer/slide_animation_duration" />
 
 </set>
