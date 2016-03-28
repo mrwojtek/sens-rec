@@ -3,18 +3,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp"
     android:animateLayoutChanges="true" >
-
-    <ListView
-        android:id="@+id/devices_list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal" />
 
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal" >
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp" >
 
         <ProgressBar
             style="?android:attr/progressBarStyle"
@@ -33,5 +30,14 @@
             android:text="Rescan" />
 
     </FrameLayout>
+
+    <ListView
+        android:id="@+id/devices_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:divider="@color/colorDivider"
+        android:dividerHeight="1dp" />
 
 </LinearLayout>

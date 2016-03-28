@@ -97,6 +97,7 @@
         <item>UDP</item>
     </array>
 
+    <string name="ble_title">BLE devices</string>
     <string name="ble_unknown_device">Unknown</string>
     <string name="ble_rescan">Rescan</string>
     <string name="ble_enable">Enable bluetooth</string>

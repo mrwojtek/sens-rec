@@ -35,6 +35,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.SwitchCompat;
 import android.text.TextUtils;
@@ -88,6 +89,10 @@ public class HeartRateDialog extends DialogFragment implements DialogInterface.O
     private ListView list;
     private DevicesAdapter adapter;
 
+    private int textColorPrimary;
+    private int textColorSecondary;
+    private int textColorTertiary;
+
     private BluetoothAdapter.LeScanCallback leScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(final BluetoothDevice device, int rssi,
@@ -130,8 +135,12 @@ public class HeartRateDialog extends DialogFragment implements DialogInterface.O
         list = (ListView) view.findViewById(R.id.devices_list);
         list.setAdapter(adapter);
 
+        textColorPrimary = ContextCompat.getColor(context, R.color.colorTextPrimary);
+        textColorSecondary = ContextCompat.getColor(context, R.color.colorTextSecondary);
+        textColorTertiary = ContextCompat.getColor(context, R.color.colorTextHint);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DialogTheme);
-        //builder.setTitle(R.string.network_title);
+        builder.setTitle(R.string.ble_title);
         builder.setView(view);
         builder.setNegativeButton(R.string.action_cancel, null);
         builder.setPositiveButton(R.string.action_ok, this);
@@ -446,6 +455,14 @@ public class HeartRateDialog extends DialogFragment implements DialogInterface.O
             }
 
             enabledSwitch.setChecked(device.isEnabled());
+
+            if (device.isPresent()) {
+                nameText.setTextColor(textColorPrimary);
+                addressText.setTextColor(textColorSecondary);
+            } else {
+                addressText.setTextColor(textColorTertiary);
+                nameText.setTextColor(textColorTertiary);
+            }
         }
 
         @Override
