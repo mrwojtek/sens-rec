@@ -485,7 +485,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
 
     public String getTypePrefix(short typeId, short deviceId) {
         if (typeId < 0) {
-            return getOtherTypePrefix(typeId);
+            return getOtherTypePrefix(typeId, deviceId);
         } else {
             String prefix = getSensorTypePrefix((short) (typeId / 2));
             if (!PREFIX_UNKNOWN.equals(prefix)) {
@@ -500,7 +500,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         }
     }
 
-    public String getOtherTypePrefix(short typeId) {
+    public String getOtherTypePrefix(short typeId, short deviceId) {
         switch (typeId) {
             case TYPE_START:
                 return "start";
@@ -517,7 +517,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
             case TYPE_GPS_NMEA:
                 return "nmea";
             case TYPE_BLE:
-                return "ble";
+                return String.format("ble_%d", deviceId);
             default:
                 return PREFIX_UNKNOWN;
         }
