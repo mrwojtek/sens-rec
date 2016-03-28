@@ -25,6 +25,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
+import pl.mrwojtek.sensrec.ble.BleRecorder;
+
 /**
  * Compares recorders according to source of measurements. The recorder is set
  * up in such a way that raw measurements directly from physical sensors have
@@ -37,6 +39,7 @@ public class PhysicalRecorderComparator implements Comparator<Recorder> {
 
     public PhysicalRecorderComparator() {
         int index = 0;
+        orders.put(SensorsRecorder.TYPE_BLE, index++);
         orders.put(SensorsRecorder.TYPE_GPS, index++);
         orders.put(SensorsRecorder.TYPE_GPS_NMEA, index++);
         orders.put(SensorsRecorder.TYPE_BATTERY_VOLTAGE, index++);
@@ -69,7 +72,7 @@ public class PhysicalRecorderComparator implements Comparator<Recorder> {
 
     public boolean isDefaultEnabled(Recorder recorder) {
         Integer order = orders.get(recorder.getTypeId());
-        return order != null && order < defaultDisabledIndex;
+        return order != null && order < defaultDisabledIndex || recorder instanceof BleRecorder;
     }
 
     @Override

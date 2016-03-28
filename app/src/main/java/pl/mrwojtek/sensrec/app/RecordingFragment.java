@@ -34,6 +34,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import pl.mrwojtek.sensrec.FileOutput;
@@ -47,7 +48,8 @@ import pl.mrwojtek.sensrec.app.util.TintableImageView;
 /**
  * Preview of the currently running recording.
  */
-public class RecordingFragment extends Fragment implements SensorsRecorder.OnRecordingListener {
+public class RecordingFragment extends Fragment implements SensorsRecorder.OnRecordingListener,
+        SensorsRecorder.OnBleRecordersChangedListener {
 
     private static final String TAG = "SensRec";
 
@@ -67,6 +69,7 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
 
     protected ViewGroup recordProgressLayout;
     protected ViewGroup fragmentLayout;
+    protected GridLayout sensorsLayout;
 
     protected TintableImageView recordingClockImage;
     protected TextView recordingClockText;
@@ -126,15 +129,14 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
         networkStatusText = (TextView) view.findViewById(R.id.network_status_text);
         networkStatusText.setTypeface(MaterialUtils.getRobotoMedium(activity));
 
-        GridLayout sensorsLayout = (GridLayout) view.findViewById(R.id.recordings_layout);
+        sensorsLayout = (GridLayout) view.findViewById(R.id.recordings_layout);
         int cw = getResources().getDimensionPixelSize(R.dimen.recording_column_width);
         int sw = getResources().getDisplayMetrics().widthPixels;
         sensorsLayout.setColumnCount(Math.max(1, (dual ? sw / (2 * cw) : sw / cw)));
-        for (Recorder recorder : activity.getRecorder().getAll()) {
-            RecordingView recordingView = new RecordingView();
-            sensorsLayout.addView(recordingView.bind(recorder, inflater, sensorsLayout));
-            recordings.add(recordingView);
-        }
+
+        reinitializeRecorders();
+
+        activity.getRecorder().addOnBleRecordersChangedListener(this);
 
         recordingRunnable = new Runnable() {
             @Override
@@ -155,6 +157,12 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
         };
 
         return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        activity.getRecorder().removeOnBleRecordersChangedListener(this);
+        super.onDestroyView();
     }
 
     @Override
@@ -208,6 +216,29 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
     @Override
     public void onOutput(boolean saving, boolean streaming) {
         // Ignore
+    }
+
+    @Override
+    public void onBleRecordersChanged() {
+        reinitializeRecorders();
+    }
+
+    private void reinitializeRecorders() {
+        sensorsLayout.removeAllViews();
+        recordings.clear();
+
+        LayoutInflater inflater = LayoutInflater.from(sensorsLayout.getContext());
+        appendRecordings(inflater, activity.getRecorder().getBleRecorders().values());
+        appendRecordings(inflater, activity.getRecorder().getFixedRecorders());
+    }
+
+    private void appendRecordings(LayoutInflater inflater,
+                                  Collection<? extends Recorder> recorders) {
+        for (Recorder recorder : recorders) {
+            RecordingView recordingView = new RecordingView();
+            sensorsLayout.addView(recordingView.bind(recorder, inflater, sensorsLayout));
+            recordings.add(recordingView);
+        }
     }
 
     protected void updateRecordingClock() {

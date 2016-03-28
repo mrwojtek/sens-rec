@@ -42,6 +42,7 @@ public abstract class Output {
         Record write(float value);
         Record write(double value);
         Record write(String value, int offset, int count);
+        Record write(byte[] value, int offset, int count);
         void save();
     }
 
@@ -83,8 +84,13 @@ public abstract class Output {
         }
 
         @Override
-        public void save() {
+        public Record write(byte[] value, int offset, int count) {
+            return this;
+        }
 
+        @Override
+        public void save() {
+            // Do nothing
         }
     }
 
@@ -134,6 +140,12 @@ public abstract class Output {
 
         @Override
         public Record write(String value, int offset, int count) {
+            wrapped.write(value, offset, count);
+            return this;
+        }
+
+        @Override
+        public Record write(byte[] value, int offset, int count) {
             wrapped.write(value, offset, count);
             return this;
         }
@@ -248,6 +260,20 @@ public abstract class Output {
             try {
                 if (getWriter() != null) {
                     getWriter().write(value.getBytes(), offset, count);
+                    onWritten(count);
+                }
+            } catch (IOException ex) {
+                Log.e(TAG, "Error writing String: " + ex.getMessage());
+                onException(ex);
+            }
+            return this;
+        }
+
+        @Override
+        public Output.Record write(byte[] value, int offset, int count) {
+            try {
+                if (getWriter() != null) {
+                    getWriter().write(value, offset, count);
                     onWritten(count);
                 }
             } catch (IOException ex) {

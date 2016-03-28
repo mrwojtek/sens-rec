@@ -186,7 +186,7 @@ public class RecordReader {
 
             // Resolve start frame version and read data
             version = dis.readInt();
-            if (version == 1200 || version == 1300) {
+            if (version == 1200 || (version / 100) == 13) {
                 startTime = dis.readLong();
                 startDate = new Date(dis.readLong());
                 binary = true;
@@ -211,7 +211,7 @@ public class RecordReader {
 
             // Resolve start frame version and read data
             version = scanner.nextInt();
-            if (version == 1200 || version == 1300) {
+            if (version == 1200 || (version / 100) == 13) {
                 if (!scanner.hasNextLong()) {
                     return false;
                 }
@@ -262,7 +262,7 @@ public class RecordReader {
             }
 
             // Read end frame data
-            if (version == 1200 || version == 1300) {
+            if (version == 1200 || (version /100) == 13) {
                 endTime = dis.readLong();
                 endDate = new Date(dis.readLong());
                 duration = dis.readLong();
@@ -332,7 +332,7 @@ public class RecordReader {
                 }
 
                 // Read end frame data
-                if (version == 1200 || version == 1300) {
+                if (version == 1200 || (version / 100) == 13) {
                     if (!scanner.hasNextLong()) {
                         return 1;
                     }

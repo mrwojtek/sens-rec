@@ -29,7 +29,7 @@ import android.os.Bundle;
  */
 public class LocationRecorder implements Recorder, LocationListener {
 
-    public static final String PREF_KEY = SensorsRecorder.PREF_SENSOR_PREFIX + "location";
+    public static final String PREF_KEY = SensorsRecorder.PREF_SENSOR_ + "location";
 
     protected FrequencyMeasure measure = new FrequencyMeasure(5500, 10500, 100);
     protected SensorsRecorder sensorsRecorder;

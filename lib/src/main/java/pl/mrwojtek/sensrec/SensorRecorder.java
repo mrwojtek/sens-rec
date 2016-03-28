@@ -30,7 +30,7 @@ import android.os.SystemClock;
  */
 public class SensorRecorder implements Recorder, SensorEventListener {
 
-    private static final String PREF_KEY = SensorsRecorder.PREF_SENSOR_PREFIX + "%d_%d";
+    private static final String PREF_KEY = SensorsRecorder.PREF_SENSOR_ + "%d_%d";
 
     protected FrequencyMeasure measure = new FrequencyMeasure();
     protected SensorsRecorder sensorsRecorder;

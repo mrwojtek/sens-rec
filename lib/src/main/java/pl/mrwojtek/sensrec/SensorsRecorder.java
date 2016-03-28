@@ -19,20 +19,30 @@
 
 package pl.mrwojtek.sensrec;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import pl.mrwojtek.sensrec.ble.BleRecorder;
 
 /**
  * Provides functionality to manage recordings lifecycle.
@@ -46,7 +56,10 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     public static final String PREF_NETWORK_PORT = "pref_network_port";
     public static final String PREF_SAVE_BINARY = "pref_save_binary";
     public static final String PREF_SAMPLING_PERIOD = "pref_sampling_period";
-    public static final String PREF_SENSOR_PREFIX = "sensor_";
+    public static final String PREF_SENSOR_= "sensor_";
+    public static final String PREF_BLE_DEVICES = "ble_devices";
+    public static final String PREF_BLE_NAME_ = "ble_name_";
+    public static final String PREF_BLE_ID_ = "ble_id_";
     public static final String PREF_LAST_FILE_INDEX = "file_index";
 
     public static final int PROTOCOL_TCP = 0;
@@ -67,8 +80,9 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     public static final short TYPE_BATTERY_VOLTAGE = -5;
     public static final short TYPE_GPS = -6;
     public static final short TYPE_GPS_NMEA = -7;
+    public static final short TYPE_BLE = -8;
 
-    protected static final int LOG_VERSION = 1300;
+    protected static final int LOG_VERSION = 1301;
 
     protected static final String SEPARATOR = "\t";
     protected static final String NEW_LINE = "\n";
@@ -83,10 +97,14 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     protected Handler uiHandler;
     protected SensorManager sensorManager;
     protected LocationManager locationManager;
+    protected BluetoothManager bluetoothManager;
+    protected BluetoothAdapter bluetoothAdapter;
     protected SharedPreferences prefs;
     protected List<OnRecordingListener> onRecordingListeners = new ArrayList<>();
+    protected List<OnBleRecordersChangedListener> onBleRecordersListeners = new ArrayList<>();
     protected PhysicalRecorderComparator physicalComparator;
     protected List<Recorder> recorders;
+    protected SortedMap<Integer, BleRecorder> bleRecorders;
     protected RecorderOutput output;
 
     protected long lastDuration;
@@ -107,13 +125,52 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         uiHandler = new Handler(context.getMainLooper());
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         output = new RecorderOutput(this);
-        initialize();
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
         prefs.registerOnSharedPreferenceChangeListener(this);
+        initialize();
+    }
+
+    private void reinitializeBle() {
+        Set<String> devices = prefs.getStringSet(PREF_BLE_DEVICES, null);
+
+        SortedMap<Integer, BleRecorder> newRecorders = new TreeMap<>();
+
+        if (bleRecorders != null) {
+            for (Map.Entry<Integer, BleRecorder> entry : bleRecorders.entrySet()) {
+                BleRecorder recorder = entry.getValue();
+                if (devices != null && devices.contains(recorder.getAddress()) &&
+                        prefs.getInt(PREF_BLE_ID_ + recorder.getAddress(), 0) == entry.getKey()) {
+                    newRecorders.put(entry.getKey(), recorder);
+                } else if (isRecording()) {
+                    recorder.stop();
+                }
+            }
+        }
+
+        if (devices != null) {
+            for (String address : devices) {
+                int id = prefs.getInt(PREF_BLE_ID_ + address, 0);
+                if (!newRecorders.containsKey(id)) {
+                    String name = prefs.getString(PREF_BLE_NAME_ + address, null);
+                    BleRecorder recorder = new BleRecorder(this, id, address, name);
+                    newRecorders.put(id, recorder);
+                    if (isRecording()) {
+                        recorder.start();
+                    }
+                }
+            }
+        }
+
+        bleRecorders = newRecorders;
+
+        notifyBleRecordersChanged();
     }
 
     public void initialize() {
+        reinitializeBle();
+
         recorders = new ArrayList<>();
         recorders.add(new LocationRecorder(this));
         recorders.add(new NmeaRecorder(this));
@@ -167,7 +224,9 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
             } else {
                 output.getSocketOutput().stop();
             }
-        } else if (isRecording() && key != null && key.startsWith(PREF_SENSOR_PREFIX)) {
+        } else if (PREF_BLE_DEVICES.equals(key)) {
+            reinitializeBle();
+        } else if (isRecording() && key != null && key.startsWith(PREF_SENSOR_)) {
             for (Recorder recorder : recorders) {
                 if (isEnabled(recorder)) {
                     recorder.start();
@@ -199,6 +258,14 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         return onRecordingListeners.isEmpty();
     }
 
+    public void addOnBleRecordersChangedListener(OnBleRecordersChangedListener listener) {
+        onBleRecordersListeners.add(listener);
+    }
+
+    public void removeOnBleRecordersChangedListener(OnBleRecordersChangedListener listener) {
+        onBleRecordersListeners.remove(listener);
+    }
+
     protected SensorManager getSensorManager() {
         return sensorManager;
     }
@@ -207,15 +274,23 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         return locationManager;
     }
 
-    protected Handler getUiHandler() {
+    public BluetoothAdapter getBluetoothAdapter() {
+        return bluetoothAdapter;
+    }
+
+    public Handler getUiHandler() {
         return uiHandler;
     }
 
-    protected Context getContext() {
+    public Context getContext() {
         return context;
     }
 
-    public List<Recorder> getAll() {
+    public SortedMap<Integer, BleRecorder> getBleRecorders() {
+        return bleRecorders;
+    }
+
+    public List<Recorder> getFixedRecorders() {
         return recorders;
     }
 
@@ -254,11 +329,13 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
             active = true;
             paused = false;
             startOutput();
+            startBluetooth();
             startSensors();
             notifyStarted();
         } else if (paused) {
             lastTime = SystemClock.elapsedRealtime();
             paused = false;
+            startBluetooth();
             startSensors();
             notifyStarted();
         }
@@ -269,6 +346,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
             lastDuration += SystemClock.elapsedRealtime() - lastTime;
             paused = true;
             stopSensors();
+            stopBluetooth();
             notifyPaused();
         }
     }
@@ -280,6 +358,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
             }
             active = false;
             stopSensors();
+            stopBluetooth();
             stopOutput();
             notifyStopped();
         }
@@ -293,7 +372,26 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         output.stop();
     }
 
+    protected boolean startBluetooth() {
+        if (bluetoothManager != null && Build.VERSION.SDK_INT >= 18) {
+            bluetoothAdapter = bluetoothManager.getAdapter();
+            if (bluetoothAdapter == null) {
+                Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    protected void stopBluetooth() {
+        bluetoothAdapter = null;
+    }
+
     protected void startSensors() {
+        for (Map.Entry<Integer, BleRecorder> recorder : bleRecorders.entrySet()) {
+            recorder.getValue().start();
+        }
         for (Recorder recorder : recorders) {
             if (isEnabled(recorder)) {
                 recorder.start();
@@ -304,6 +402,9 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     protected void stopSensors() {
         for (Recorder recorder : recorders) {
             recorder.stop();
+        }
+        for (Map.Entry<Integer, BleRecorder> recorder : bleRecorders.entrySet()) {
+            recorder.getValue().stop();
         }
     }
 
@@ -399,7 +500,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         }
     }
 
-    protected String getOtherTypePrefix(short typeId) {
+    public String getOtherTypePrefix(short typeId) {
         switch (typeId) {
             case TYPE_START:
                 return "start";
@@ -415,12 +516,14 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
                 return "gps";
             case TYPE_GPS_NMEA:
                 return "nmea";
+            case TYPE_BLE:
+                return "ble";
             default:
                 return PREFIX_UNKNOWN;
         }
     }
 
-    protected String getSensorTypePrefix(short typeId) {
+    public String getSensorTypePrefix(short typeId) {
         switch (typeId) {
             case Sensor.TYPE_ACCELEROMETER:
                 return "accel";
@@ -469,31 +572,31 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         }
     }
 
-    protected String getBatteryVoltageName() {
+    public String getBatteryVoltageName() {
         return context.getString(R.string.sensor_battery_voltage);
     }
 
-    protected String getBatteryVoltageDescription() {
+    public String getBatteryVoltageDescription() {
         return context.getString(R.string.sensor_battery_voltage_description);
     }
 
-    protected String getGpsName() {
+    public String getGpsName() {
         return context.getString(R.string.sensor_gps);
     }
 
-    protected String getGpsDescription() {
+    public String getGpsDescription() {
         return context.getString(R.string.sensor_gps_description);
     }
 
-    protected String getGpsNmeaName() {
+    public String getGpsNmeaName() {
         return context.getString(R.string.sensor_gps_nmea);
     }
 
-    protected String getGpsNmeaDescription() {
+    public String getGpsNmeaDescription() {
         return context.getString(R.string.sensor_gps_nmea_description);
     }
 
-    protected String getShortName(Sensor sensor, Integer number) {
+    public String getShortName(Sensor sensor, Integer number) {
         int stringId;
         switch (sensor.getType()) {
             case Sensor.TYPE_ACCELEROMETER:
@@ -571,7 +674,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         }
     }
 
-    protected String getDescription(Sensor sensor, boolean sensorDefault) {
+    public String getDescription(Sensor sensor, boolean sensorDefault) {
         int id = sensorDefault ? R.string.sensor_full_name_default : R.string.sensor_full_name;
         return context.getString(id, sensor.getName(), sensor.getVersion(), sensor.getPower());
     }
@@ -602,6 +705,12 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         }
     }
 
+    protected void notifyBleRecordersChanged() {
+        for (OnBleRecordersChangedListener listener : onBleRecordersListeners) {
+            listener.onBleRecordersChanged();
+        }
+    }
+
     public interface OnRecordingListener {
         void onStarted();
         void onStopped();
@@ -609,4 +718,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         void onOutput(boolean saving, boolean streaming);
     }
 
+    public interface OnBleRecordersChangedListener {
+        void onBleRecordersChanged();
+    }
 }

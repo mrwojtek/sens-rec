@@ -28,7 +28,7 @@ import android.os.BatteryManager;
  */
 public class BatteryRecorder implements Recorder, Runnable {
 
-    public static final String PREF_KEY = SensorsRecorder.PREF_SENSOR_PREFIX + "battery";
+    public static final String PREF_KEY = SensorsRecorder.PREF_SENSOR_ + "battery";
 
     protected static final int BATTERY_INTERVAL = 5000;
 

@@ -161,6 +161,13 @@ public class RecorderOutput extends Output {
             socketRecord.write(value, offset, count);
             return this;
         }
+
+        @Override
+        public Output.Record write(byte[] value, int offset, int count) {
+            fileRecord.write(value, offset, count);
+            socketRecord.write(value, offset, count);
+            return this;
+        }
     }
 
     private class BinaryRecord extends RecordWrapper {
@@ -181,6 +188,13 @@ public class RecorderOutput extends Output {
 
         @Override
         public Output.Record write(String value, int offset, int count) {
+            write(count);
+            super.write(value, offset, count);
+            return this;
+        }
+
+        @Override
+        public Output.Record write(byte[] value, int offset, int count) {
             write(count);
             super.write(value, offset, count);
             return this;
@@ -251,6 +265,14 @@ public class RecorderOutput extends Output {
         public Output.Record write(String value, int offset, int count) {
             builder.append(sensorsRecorder.getTextSeparator());
             builder.append(value, offset, offset + count);
+            return this;
+        }
+
+        @Override
+        public Output.Record write(byte[] value, int offset, int count) {
+            builder.append(sensorsRecorder.getTextSeparator());
+            for (int i = 0; i < count; ++i)
+                builder.append(String.format("%02X", value[i + offset]));
             return this;
         }
     }

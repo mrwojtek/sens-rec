@@ -19,18 +19,27 @@
 
 package pl.mrwojtek.sensrec.app;
 
+import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
 import java.util.List;
+import java.util.Set;
 
 import pl.mrwojtek.sensrec.PhysicalRecorderComparator;
 import pl.mrwojtek.sensrec.Recorder;
@@ -45,6 +54,21 @@ public class SettingsActivity extends AppCompatActivity {
     private static final String KEY_SENSORS = "pref_sensors";
     private static final String KEY_NETWORK = "pref_network";
 
+    private BroadcastReceiver bluetoothStateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+                HeartRateDialog heartRateDialog = getHeartRateDialog();
+                if (heartRateDialog != null) {
+                    final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
+                            BluetoothAdapter.ERROR);
+                    heartRateDialog.onBluetoothAdapterState(state);
+                }
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,9 +76,20 @@ public class SettingsActivity extends AppCompatActivity {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-//        getFragmentManager().beginTransaction()
-//                .replace(android.R.id.content, new SettingsFragment())
-//                .commit();
+
+        IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(bluetoothStateReceiver, filter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(bluetoothStateReceiver);
+        super.onDestroy();
+    }
+
+    private HeartRateDialog getHeartRateDialog() {
+        FragmentManager fm = getSupportFragmentManager();
+        return (HeartRateDialog) fm.findFragmentByTag(HeartRateDialog.DIALOG_TAG);
     }
 
     public static class SettingsFragment extends PreferenceFragment implements
@@ -64,6 +99,7 @@ public class SettingsActivity extends AppCompatActivity {
         private SharedPreferences preferences;
         private Preference samplingPref;
         private Preference networkPref;
+        private Preference heartRatePref;
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -100,20 +136,43 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             });
 
+
             PreferenceCategory sensors = (PreferenceCategory) getPreferenceScreen()
                     .findPreference(KEY_SENSORS);
 
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 &&
+                    getActivity().getPackageManager().hasSystemFeature(
+                            PackageManager.FEATURE_BLUETOOTH_LE)) {
+                heartRatePref = new Preference(getActivity());
+                heartRatePref.setTitle(R.string.pref_heart_rate);
+                heartRatePref.setSummary(getHeartRateSummary());
+                heartRatePref.setOnPreferenceClickListener(
+                        new Preference.OnPreferenceClickListener() {
+                    @Override
+                    public boolean onPreferenceClick(Preference preference) {
+                        FragmentTransaction ft = ((AppCompatActivity) getActivity())
+                                .getSupportFragmentManager().beginTransaction();
+                        ft.add(new HeartRateDialog(), HeartRateDialog.DIALOG_TAG);
+                        ft.commit();
+                        return true;
+                    }
+                });
+                sensors.addPreference(heartRatePref);
+            }
+
             recorder = RecordingService.getRecorder(getActivity());
             PhysicalRecorderComparator physicalComparator = recorder.getPhysicalComparator();
-            List<Recorder> all = recorder.getAll();
+            List<Recorder> all = recorder.getFixedRecorders();
             for (int i = 0; i < all.size(); ++i) {
                 Recorder r = all.get(i);
-                Preference pref = new SwitchPreference(getActivity());
-                pref.setKey(r.getPrefKey());
-                pref.setDefaultValue(physicalComparator.isDefaultEnabled(r));
-                pref.setTitle(r.getShortName());
-                pref.setSummary(r.getDescription());
-                sensors.addPreference(pref);
+                if (r.getPrefKey() != null) {
+                    Preference pref = new SwitchPreference(getActivity());
+                    pref.setKey(r.getPrefKey());
+                    pref.setDefaultValue(physicalComparator.isDefaultEnabled(r));
+                    pref.setTitle(r.getShortName());
+                    pref.setSummary(r.getDescription());
+                    sensors.addPreference(pref);
+                }
             }
         }
 
@@ -132,6 +191,8 @@ public class SettingsActivity extends AppCompatActivity {
                     SensorsRecorder.PREF_NETWORK_PORT.equals(key) ||
                     SensorsRecorder.PREF_NETWORK_PROTOCOL.equals(key)) {
                 networkPref.setSummary(getNetworkSummary());
+            } else if (SensorsRecorder.PREF_BLE_DEVICES.equals(key)) {
+                heartRatePref.setSummary(getHeartRateSummary());
             }
 
             if (recorder.isRecording() && (SensorsRecorder.PREF_SAMPLING_PERIOD.equals(key) ||
@@ -170,6 +231,12 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
 
+        private String getHeartRateSummary() {
+            Set<String> devices = preferences.getStringSet(SensorsRecorder.PREF_BLE_DEVICES, null);
+            int count = devices != null ? devices.size() : 0;
+            return getResources()
+                    .getQuantityString(R.plurals.pref_heart_rate_summary, count, count);
+        }
     }
 
 }
