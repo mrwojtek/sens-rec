@@ -21,7 +21,9 @@ package pl.mrwojtek.sensrec;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
@@ -35,7 +37,6 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -112,6 +113,22 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     protected boolean active;
     protected boolean paused;
 
+    private BroadcastReceiver bluetoothStateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
+                        BluetoothAdapter.ERROR);
+                if (state == BluetoothAdapter.STATE_ON || state == BluetoothAdapter.STATE_OFF) {
+                    for (Map.Entry<Integer, BleRecorder> entry : bleRecorders.entrySet()) {
+                        entry.getValue().restart();
+                    }
+                }
+            }
+        }
+    };
+
     public static short getSensorTypeId(int type) {
         return (short) (type * 2);
     }
@@ -133,10 +150,9 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     }
 
     private void reinitializeBle() {
+        // Re-use the old recorders and stop the removed recorders
         Set<String> devices = prefs.getStringSet(PREF_BLE_DEVICES, null);
-
         SortedMap<Integer, BleRecorder> newRecorders = new TreeMap<>();
-
         if (bleRecorders != null) {
             for (Map.Entry<Integer, BleRecorder> entry : bleRecorders.entrySet()) {
                 BleRecorder recorder = entry.getValue();
@@ -149,6 +165,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
             }
         }
 
+        // Append and start the new recorders
         if (devices != null) {
             for (String address : devices) {
                 int id = prefs.getInt(PREF_BLE_ID_ + address, 0);
@@ -389,6 +406,10 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     }
 
     protected void startSensors() {
+        // This leads to the strange behaviour on some devices
+//        IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+//        context.registerReceiver(bluetoothStateReceiver, filter);
+
         for (Map.Entry<Integer, BleRecorder> recorder : bleRecorders.entrySet()) {
             recorder.getValue().start();
         }
@@ -400,6 +421,9 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     }
 
     protected void stopSensors() {
+        // This leads to the strange behaviour on some devices
+//        context.unregisterReceiver(bluetoothStateReceiver);
+
         for (Recorder recorder : recorders) {
             recorder.stop();
         }

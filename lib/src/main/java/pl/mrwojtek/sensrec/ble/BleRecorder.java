@@ -140,6 +140,11 @@ public class BleRecorder extends BluetoothGattCallback implements Recorder {
         return measure;
     }
 
+    public void restart() {
+        stop();
+        start();
+    }
+
     @Override
     public void start() {
         if (address == null || started) {
@@ -166,7 +171,7 @@ public class BleRecorder extends BluetoothGattCallback implements Recorder {
         BluetoothGatt bluetoothGattForClose = null;
         synchronized(this) {
             if (started) {
-                sensorsRecorder.getUiHandler().removeCallbacks(connectRunnable);
+                handler.removeCallbacks(connectRunnable);
                 measure.onStopped();
                 forRetrieval.clear();
                 forSubscription.clear();
