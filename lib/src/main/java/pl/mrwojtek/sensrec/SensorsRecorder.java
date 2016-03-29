@@ -406,7 +406,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     }
 
     protected void startSensors() {
-        // This leads to the strange behaviour on some devices
+        // This leads (indirectly) to the strange behaviour on some devices
 //        IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
 //        context.registerReceiver(bluetoothStateReceiver, filter);
 
@@ -421,7 +421,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     }
 
     protected void stopSensors() {
-        // This leads to the strange behaviour on some devices
+        // This leads (indirectly) to the strange behaviour on some devices
 //        context.unregisterReceiver(bluetoothStateReceiver);
 
         for (Recorder recorder : recorders) {
