@@ -19,7 +19,12 @@
 
 package pl.mrwojtek.sensrec;
 
+import android.Manifest;
 import android.location.GpsStatus;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Recorder for NMEA GPS data
@@ -28,12 +33,15 @@ public class NmeaRecorder implements Recorder, GpsStatus.NmeaListener {
 
     public static final String PREF_KEY = SensorsRecorder.PREF_SENSOR_ + "nmea";
 
+    protected List<String> requiredPermissions;
     protected FrequencyMeasure measure = new FrequencyMeasure(5500, 10500, 100);
     protected SensorsRecorder sensorsRecorder;
     protected boolean started;
 
     public NmeaRecorder(SensorsRecorder sensorsRecorder) {
         this.sensorsRecorder = sensorsRecorder;
+        this.requiredPermissions = new ArrayList<>();
+        this.requiredPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
     }
 
     @Override
@@ -67,11 +75,20 @@ public class NmeaRecorder implements Recorder, GpsStatus.NmeaListener {
     }
 
     @Override
+    public Collection<String> getRequiredPermissions() {
+        return requiredPermissions;
+    }
+
+    @Override
     public void start() {
         if (!started) {
-            sensorsRecorder.getLocationManager().addNmeaListener(this);
-            started = true;
-            measure.onStarted();
+            try {
+                sensorsRecorder.getLocationManager().addNmeaListener(this);
+                started = true;
+                measure.onStarted();
+            } catch (SecurityException ex) {
+                measure.onPermissionDenied();
+            }
         }
     }
 
@@ -80,8 +97,8 @@ public class NmeaRecorder implements Recorder, GpsStatus.NmeaListener {
         if (started) {
             sensorsRecorder.getLocationManager().removeNmeaListener(this);
             started = false;
-            measure.onStopped();
         }
+        measure.onStopped();
     }
 
     @Override

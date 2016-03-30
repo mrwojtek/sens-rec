@@ -35,8 +35,10 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -337,6 +339,31 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
 
     public boolean isRecording() {
         return active && !paused;
+    }
+
+    public void onPermissionsGranted(String[] permissions, int[] grantResults) {
+        if (isRecording()) {
+            startSensors();
+        }
+    }
+
+    public Set<String> collectPermissions() {
+        Set<String> required = new HashSet<>();
+        for (Map.Entry<Integer, BleRecorder> entry : bleRecorders.entrySet()) {
+            Collection<String> recorderPermissions = entry.getValue().getRequiredPermissions();
+            if (recorderPermissions != null) {
+                required.addAll(recorderPermissions);
+            }
+        }
+        for (Recorder r : recorders) {
+            if (isEnabled(r)) {
+                Collection<String> recorderPermissions = r.getRequiredPermissions();
+                if (recorderPermissions != null) {
+                    required.addAll(recorderPermissions);
+                }
+            }
+        }
+        return required;
     }
 
     public void start() {

@@ -19,10 +19,15 @@
 
 package pl.mrwojtek.sensrec;
 
+import android.Manifest;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Recorder for GPS location updates.
@@ -31,12 +36,15 @@ public class LocationRecorder implements Recorder, LocationListener {
 
     public static final String PREF_KEY = SensorsRecorder.PREF_SENSOR_ + "location";
 
+    protected List<String> requiredPermissions;
     protected FrequencyMeasure measure = new FrequencyMeasure(5500, 10500, 100);
     protected SensorsRecorder sensorsRecorder;
     protected boolean started;
 
     public LocationRecorder(SensorsRecorder sensorsRecorder) {
         this.sensorsRecorder = sensorsRecorder;
+        this.requiredPermissions = new ArrayList<>();
+        this.requiredPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
     }
 
     @Override
@@ -70,22 +78,35 @@ public class LocationRecorder implements Recorder, LocationListener {
     }
 
     @Override
+    public Collection<String> getRequiredPermissions() {
+        return requiredPermissions;
+    }
+
+    @Override
     public void start() {
         if (!started) {
-            sensorsRecorder.getLocationManager()
-                    .requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-            started = true;
-            measure.onStarted();
+            try {
+                sensorsRecorder.getLocationManager()
+                        .requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+                started = true;
+                measure.onStarted();
+            } catch (SecurityException ex) {
+                measure.onPermissionDenied();
+            }
         }
     }
 
     @Override
     public void stop() {
         if (started) {
-            sensorsRecorder.getLocationManager().removeUpdates(this);
+            try {
+                sensorsRecorder.getLocationManager().removeUpdates(this);
+            } catch (SecurityException ex) {
+                // Ignore
+            }
             started = false;
-            measure.onStopped();
         }
+        measure.onStopped();
     }
 
     @Override

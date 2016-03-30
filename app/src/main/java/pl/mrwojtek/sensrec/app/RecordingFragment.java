@@ -433,6 +433,9 @@ public class RecordingFragment extends Fragment implements SensorsRecorder.OnRec
             } else if (measure.getMeasure() == FrequencyMeasure.MEASURE_DISABLED) {
                 valueText.setText(getString(R.string.measure_disabled));
                 return false;
+            } else if (measure.getMeasure() == FrequencyMeasure.MEASURE_PERMISSION_DENIED) {
+                valueText.setText(getString(R.string.measure_permission_denied));
+                return false;
             }
             return false;
         }

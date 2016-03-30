@@ -12,6 +12,7 @@
     <string name="action_ok">OK</string>
 
     <!-- Measure -->
+    <string name="measure_permission_denied">Permission Denied</string>
     <string name="measure_disabled">Off</string>
     <string name="measure_quiet">Quiet</string>
     <string name="measure_ambiguous">Ambiguous</string>

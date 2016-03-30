@@ -33,6 +33,7 @@ import android.os.Handler;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -138,6 +139,11 @@ public class BleRecorder extends BluetoothGattCallback implements Recorder {
     @Override
     public FrequencyMeasure getFrequencyMeasure() {
         return measure;
+    }
+
+    @Override
+    public Collection<String> getRequiredPermissions() {
+        return null;
     }
 
     public void restart() {

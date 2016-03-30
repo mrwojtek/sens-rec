@@ -19,14 +19,17 @@
 
 package pl.mrwojtek.sensrec.app;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -38,6 +41,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 import pl.mrwojtek.sensrec.SensorsRecorder;
 
 /**
@@ -47,6 +55,8 @@ public class RecordsActivity extends AppCompatActivity implements
         SensorsRecorder.OnRecordingListener {
 
     private static final String TAG = "SensRec";
+
+    private static final int PERMISSIONS_REQUEST = 1;
 
     protected Toolbar toolbar;
     protected TextView stopText;
@@ -148,6 +158,31 @@ public class RecordsActivity extends AppCompatActivity implements
     @Override
     public void onOutput(boolean saving, boolean streaming) {
         // Ignore
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                           int[] grantResults) {
+        if (requestCode == PERMISSIONS_REQUEST) {
+            recorder.onPermissionsGranted(permissions, grantResults);
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    protected void checkPermissions(Collection<String> requiredPermissions) {
+        List<String> missingPermissions = new ArrayList<>();
+        for (String permission : requiredPermissions) {
+            if (ContextCompat.checkSelfPermission(this, permission)
+                    != PackageManager.PERMISSION_GRANTED) {
+                missingPermissions.add(permission);
+            }
+        }
+        if (!missingPermissions.isEmpty()) {
+            ActivityCompat.requestPermissions(this,
+                    missingPermissions.toArray(new String[missingPermissions.size()]),
+                    PERMISSIONS_REQUEST);
+        }
     }
 
     protected void updateRecordingState(boolean animate) {
@@ -316,6 +351,7 @@ public class RecordsActivity extends AppCompatActivity implements
     }
 
     protected void startRecording() {
+        checkPermissions(recorder.collectPermissions());
         recorder.start();
         RecordingService.startService(this, RecordingService.ACTION_START_RECORDING);
     }

@@ -25,6 +25,8 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.SystemClock;
 
+import java.util.Collection;
+
 /**
  * Recorder for various phone sensors.
  */
@@ -89,6 +91,11 @@ public class SensorRecorder implements Recorder, SensorEventListener {
     @Override
     public FrequencyMeasure getFrequencyMeasure() {
         return measure;
+    }
+
+    @Override
+    public Collection<String> getRequiredPermissions() {
+        return null;
     }
 
     @Override

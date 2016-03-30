@@ -23,6 +23,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
 
+import java.util.Collection;
+
 /**
  * Recorder for phone battery voltage.
  */
@@ -68,6 +70,11 @@ public class BatteryRecorder implements Recorder, Runnable {
     @Override
     public FrequencyMeasure getFrequencyMeasure() {
         return measure;
+    }
+
+    @Override
+    public Collection<String> getRequiredPermissions() {
+        return null;
     }
 
     @Override

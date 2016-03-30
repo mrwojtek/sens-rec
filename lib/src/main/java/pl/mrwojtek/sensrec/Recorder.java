@@ -19,6 +19,9 @@
 
 package pl.mrwojtek.sensrec;
 
+import java.util.Collection;
+import java.util.Set;
+
 /**
  * Subscribes for measurements and records them.
  */
@@ -61,6 +64,13 @@ public interface Recorder {
      * @return frequency measure
      */
     FrequencyMeasure getFrequencyMeasure();
+
+
+    /**
+     * Android dangerous permission required for that sensor
+     * @return a set of permissions or <code>null</code> if none required
+     */
+    Collection<String> getRequiredPermissions();
 
     /**
      * Starts sensor recording

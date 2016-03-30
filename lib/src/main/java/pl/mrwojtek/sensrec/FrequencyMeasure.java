@@ -30,6 +30,7 @@ public class FrequencyMeasure {
     public static final int MEASURE_QUIET = 2;
     public static final int MEASURE_AMBIGUOUS = 3;
     public static final int MEASURE_DISABLED = 4;
+    public static final int MEASURE_PERMISSION_DENIED = 5;
 	
 	private static final int MAXIMUM_MEASURES = 20;
 	private static final int MAXIMUM_INTERVAL = 1000;
@@ -54,6 +55,10 @@ public class FrequencyMeasure {
         this.maximumInterval = maximumInterval;
         this.quietInterval = quietInterval;
         measures = new long[size];
+    }
+
+    public synchronized void onPermissionDenied() {
+        measure = MEASURE_PERMISSION_DENIED;
     }
 
     public synchronized void onStarted() {
@@ -93,7 +98,7 @@ public class FrequencyMeasure {
             remove();
         }
 
-        if (measure == MEASURE_DISABLED) {
+        if (measure == MEASURE_DISABLED || measure == MEASURE_PERMISSION_DENIED) {
             return;
         }
 
