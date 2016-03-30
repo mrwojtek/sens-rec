@@ -1,23 +1,18 @@
 # -*- coding: utf-8 -*-
-"""
-   (C) Copyright 2015, 2016 Wojciech Mruczkiewicz
-   
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-   
-   Contributors:
-       Wojciech Mruczkiewicz
-       
-"""
+#
+#  (C) Copyright 2015, 2016 Wojciech Mruczkiewicz
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
 
 import svgwrite
 
@@ -31,21 +26,21 @@ def build_material_colors():
         colors[name] = color_to_svg_rgb(*color)
 
         tint_weight_inv = 1.0 - tint_weight        
-        colors[name + '_tint'] = color_to_svg_rgb(\
-            int(color[0] * tint_weight_inv + tint[0] * tint_weight),\
-            int(color[1] * tint_weight_inv + tint[1] * tint_weight),\
+        colors[name + '_tint'] = color_to_svg_rgb(
+            int(color[0] * tint_weight_inv + tint[0] * tint_weight),
+            int(color[1] * tint_weight_inv + tint[1] * tint_weight),
             int(color[2] * tint_weight_inv + tint[2] * tint_weight))
         
         shade_weight_inv = 1.0 - shade_weight
-        colors[name + '_shade'] = color_to_svg_rgb(\
-            int(color[0] * shade_weight_inv + shade[0] * shade_weight),\
-            int(color[1] * shade_weight_inv + shade[1] * shade_weight),\
+        colors[name + '_shade'] = color_to_svg_rgb(
+            int(color[0] * shade_weight_inv + shade[0] * shade_weight),
+            int(color[1] * shade_weight_inv + shade[1] * shade_weight),
             int(color[2] * shade_weight_inv + shade[2] * shade_weight))
     
     white = (255, 255, 255)
-    grey_900 = (33,33,33)
-    brown_900 = (62,39,35)
-    blue_grey_900 = (38,50,56)
+    grey_900 = (33, 33, 33)
+    brown_900 = (62, 39, 35)
+    blue_grey_900 = (38, 50, 56)
     
     colors = {}
     append_color('grey_50', (250, 250, 250), white, 0.4, grey_900, 0.1)
