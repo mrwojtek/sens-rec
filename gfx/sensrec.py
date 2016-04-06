@@ -41,6 +41,14 @@ class SensRecFun:
                 math.sin(self.C*x))
 
 
+def convert_icon(file, out_dir, out_file, width, height):
+    cmd = 'inkscape -z -e %s%s%s.png -w %d -h %d %s' % \
+          (out_dir, os.path.sep, out_file, width, height, file)
+    print(cmd)
+    os.makedirs(out_dir, exist_ok=True)
+    subprocess.call(cmd)
+
+
 def export_icon(prefix, path, width, height, with_xxxhdpi=False):
     m = re.match('(.*)\\.svg', path)
     if m is not None:
@@ -51,12 +59,8 @@ def export_icon(prefix, path, width, height, with_xxxhdpi=False):
         if with_xxxhdpi:
             scales.append(('xxxhdpi', 4, 1))
         for suffix, p, q in scales:
-            dir = '%s-%s' % (prefix, suffix)
-            cmd = 'inkscape -z -e %s%s%s.png -w %d -h %d %s' %\
-                (dir, os.path.sep, m.group(1), width*p/q, height*p/q, path)
-            print(cmd)
-            os.makedirs(dir, exist_ok=True)
-            subprocess.call(cmd)
+            out_dir = '%s-%s' % (prefix, suffix)
+            convert_icon(path, out_dir, m.group(1), width*p/q, height*p/q)
     
 
 def make_launcher_icon(path, with_background=True):
@@ -142,10 +146,15 @@ def make_status_icon(path):
     dwg.save()
     return path, width, height
 
+# Make launcher icons
 launcher_icon = make_launcher_icon('ic_launcher_sens_rec.svg',
                                    with_background=True)
 export_icon('..\\app\\src\\main\\res\\mipmap', *launcher_icon,
             with_xxxhdpi=True)
-            
+
+# Make hi-res icon
+convert_icon(launcher_icon[0], '.', 'ic_sens_rec', 512, 512)
+
+# Make recording status icon
 status_icon = make_status_icon('ic_stat_sens_rec.svg')
 export_icon('..\\app\\src\\main\\res\\drawable', *status_icon)
