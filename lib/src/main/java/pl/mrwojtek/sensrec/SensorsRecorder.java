@@ -523,7 +523,7 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
     }
 
     public int getLastFileIndex() {
-        return prefs.getInt(PREF_LAST_FILE_INDEX, 1);
+        return prefs.getInt(PREF_LAST_FILE_INDEX, 0);
     }
 
     public void setLastFileIndex(int fileIndex) {
