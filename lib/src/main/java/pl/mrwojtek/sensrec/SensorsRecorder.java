@@ -309,6 +309,10 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         return bleRecorders;
     }
 
+    public boolean isBluetoothRequired() {
+        return !bleRecorders.isEmpty();
+    }
+
     public List<Recorder> getFixedRecorders() {
         return recorders;
     }

@@ -25,6 +25,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -352,6 +353,9 @@ public class RecordsActivity extends AppCompatActivity implements
 
     protected void startRecording() {
         checkPermissions(recorder.collectPermissions());
+        if (recorder.isBluetoothRequired()) {
+            requestEnableBluetooth();
+        }
         recorder.start();
         RecordingService.startService(this, RecordingService.ACTION_START_RECORDING);
     }
@@ -365,5 +369,9 @@ public class RecordsActivity extends AppCompatActivity implements
         recorder.pause();
     }
 
+    private void requestEnableBluetooth() {
+        Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+        startActivity(intent);
+    }
 
 }
