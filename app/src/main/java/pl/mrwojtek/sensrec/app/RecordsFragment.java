@@ -188,7 +188,7 @@ public class RecordsFragment extends Fragment implements DeleteConfirmationDialo
         if (records.size() == 0) {
             fallbackText.setText(R.string.records_empty);
             fallbackText.setVisibility(View.VISIBLE);
-            recycler.setVisibility(View.GONE);
+            recycler.setVisibility(View.INVISIBLE);
         } else {
             fallbackText.setVisibility(View.GONE);
             recycler.setVisibility(View.VISIBLE);
