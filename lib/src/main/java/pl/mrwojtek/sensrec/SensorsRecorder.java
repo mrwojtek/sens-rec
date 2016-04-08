@@ -25,6 +25,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.location.LocationManager;
@@ -144,7 +145,11 @@ public class SensorsRecorder implements SharedPreferences.OnSharedPreferenceChan
         uiHandler = new Handler(context.getMainLooper());
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 &&
+                context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            bluetoothManager = (BluetoothManager)
+                    context.getSystemService(Context.BLUETOOTH_SERVICE);
+        }
         output = new RecorderOutput(this);
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
         prefs.registerOnSharedPreferenceChangeListener(this);

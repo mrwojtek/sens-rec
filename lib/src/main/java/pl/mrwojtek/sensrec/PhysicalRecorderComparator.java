@@ -20,6 +20,7 @@
 package pl.mrwojtek.sensrec;
 
 import android.hardware.Sensor;
+import android.os.Build;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -72,7 +73,11 @@ public class PhysicalRecorderComparator implements Comparator<Recorder> {
 
     public boolean isDefaultEnabled(Recorder recorder) {
         Integer order = orders.get(recorder.getTypeId());
-        return order != null && order < defaultDisabledIndex || recorder instanceof BleRecorder;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            return order != null && order < defaultDisabledIndex || recorder instanceof BleRecorder;
+        } else {
+            return order != null && order < defaultDisabledIndex;
+        }
     }
 
     @Override
