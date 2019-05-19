@@ -42,7 +42,7 @@ public class SocketOutput {
     private static final String TAG = "SensRec";
 
     private static final int BUFFER_CAPACITY = 32768;
-    private static final int MAX_PACKET_SIZE = 16384;
+    private static final int MAX_PACKET_SIZE = 1024;
 
     private RecorderOutput output;
     private SensorsRecorder recorder;
@@ -251,9 +251,10 @@ public class SocketOutput {
                 }
 
                 if (doConnect) {
+                    Log.i(TAG, "Trying to connect");
+
                     if (connect()) {
                         Log.i(TAG, "Network connected");
-
                         // Reset wait time
                         connectWaitTime = FIRST_TIMEOUT;
                     } else {
@@ -262,10 +263,12 @@ public class SocketOutput {
                                     connectWaitTime + "ms");
                         }
 
-                        // Calculate new connect time and increase connection retry time
-                        connectTime = SystemClock.elapsedRealtime() + connectWaitTime;
+                        // Increase connection retry time
                         connectWaitTime = Math.min(connectWaitTime << 1, MAXIMUM_TIMEOUT);
                     }
+                    // Calculate time when we might try again next
+                    connectTime = SystemClock.elapsedRealtime() + connectWaitTime;
+
                 } else if(doDisconnect) {
                     disconnect();
                 } else if (doWrite) {
@@ -324,13 +327,15 @@ public class SocketOutput {
                         (protocol == SensorsRecorder.PROTOCOL_TCP && connectTcp())) {
                     writeLock.lock();
                     try {
-                        recorder.recordStart(newDirectRecord());
+                        setConnected(true);
+                        recorder.recordStart(newDirectRecord()); // this may lead to an exception resetting setConnected
+                        if (connected) {
+                            notifyConnected();
+                        }
                     } finally {
                         writeLock.unlock();
                     }
 
-                    setConnected(true);
-                    notifyConnected();
                     return true;
                 }
             } catch (IOException ex) {

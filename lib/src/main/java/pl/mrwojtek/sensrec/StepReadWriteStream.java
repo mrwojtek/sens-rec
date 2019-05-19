@@ -160,6 +160,9 @@ public class StepReadWriteStream extends OutputStream {
 
     public int writeTo(WritableByteChannel byteChannel, int bytes) throws IOException {
         int readCount;
+        if (byteChannel == null) {
+            return 0;
+        }
         synchronized (content) {
             readCount = Math.min(count, bytes);
         }
