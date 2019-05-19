@@ -352,6 +352,9 @@ public class Records extends Fragment {
 
         @Override
         public synchronized void onEvent(int event, String path) {
+            if (path == null) {
+                return;
+            }
             if (path.equals(tabuPath)) {
                 return;
             }
